@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Convert images – GrayFox</title>
+<meta name="description" content="Convert images between PNG, WebP, JPEG, TIFF, BMP and GIF offline, with true lossless conversion and pixel-by-pixel verification.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect x=%222%22 y=%222%22 width=%2228%22 height=%2228%22 rx=%226%22 fill=%22%23c9373b%22/%3E%3Cpath d=%22M6 6l7 6h6l7-6-1 11-9 9-9-9z%22 fill=%22white%22/%3E%3Ccircle cx=%2212.5%22 cy=%2216%22 r=%221.4%22 fill=%22%23c9373b%22/%3E%3Ccircle cx=%2219.5%22 cy=%2216%22 r=%221.4%22 fill=%22%23c9373b%22/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#ececee; --panel:#ffffff; --bar:#f3f3f5; --border:#d9d9de; --text:#1b1b1f; --muted:#5f5f68;
+  --accent:#c4363a; --accent-hover:#a92c30; --accent-text:#ffffff; --input:#ffffff;
+  --ok:#1f7a45; --ok-bg:#e3f3e9; --warn:#8a5a00; --warn-bg:#fbf0d9; --err:#b3261e; --err-bg:#fbe4e2;
+  --check-a:#ffffff; --check-b:#e3e3e7;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#121214; --panel:#1b1b1e; --bar:#212125; --border:#303036; --text:#ececef; --muted:#9b9ba4;
+    --accent:#c9373b; --accent-hover:#de4549; --accent-text:#ffffff; --input:#141416;
+    --ok:#6fd49a; --ok-bg:#16301f; --warn:#f0c46a; --warn-bg:#33280f; --err:#ff8a80; --err-bg:#3a1714;
+    --check-a:#2a2a2e; --check-b:#222225;
+    color-scheme: dark;
+  }
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:14px/1.45 "Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:inherit}
+
+.topnav{display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding:10px 24px;border-bottom:1px solid var(--border);background:var(--panel)}
+.topnav .brand{font-weight:700;text-decoration:none;margin-right:14px;display:flex;align-items:center;gap:8px}
+.topnav .brand i{width:20px;height:20px;border-radius:5px;background:var(--accent);display:inline-block}
+.topnav a.link{text-decoration:none;padding:6px 10px;border-radius:5px;color:var(--muted)}
+.topnav a.link:hover{color:var(--text);background:var(--bar)}
+.topnav a.link[aria-current]{color:var(--text);background:var(--bar);font-weight:600}
+.topnav .soon{padding:6px 10px;color:var(--muted);opacity:.55;cursor:default}
+
+header.page{padding:18px 24px 4px}
+header.page h1{margin:0 0 2px;font-size:20px;font-weight:650;letter-spacing:-.01em}
+header.page p{margin:0;color:var(--muted)}
+
+main{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:16px;padding:12px 24px 24px;align-items:start}
+@media (max-width:860px){main{grid-template-columns:1fr;padding:12px}.topnav,header.page{padding-left:12px;padding-right:12px}}
+
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.sec{border-top:1px solid var(--border)}
+.sec:first-child{border-top:0}
+.sec-head{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bar);font-weight:600}
+.sec-head svg{width:16px;height:16px;opacity:.85}
+.sec-body{padding:14px 16px 16px;display:grid;gap:14px}
+.label{font-weight:600;margin-bottom:6px}
+.hint{color:var(--muted);font-size:13px;margin:0}
+
+.formats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.fmt{position:relative}
+.fmt input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.fmt span{display:grid;gap:1px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--input);height:100%}
+.fmt b{font-size:15px}
+.fmt small{font-size:11.5px;color:var(--muted)}
+.fmt input:checked+span{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.fmt input:checked+span small{color:var(--text)}
+.fmt input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+a.fmt-link{display:grid;gap:1px;padding:8px 10px;border:1px dashed var(--border);border-radius:6px;text-decoration:none}
+a.fmt-link b{font-size:15px}
+a.fmt-link small{font-size:11.5px;color:var(--muted)}
+a.fmt-link:hover{border-color:var(--muted)}
+
+.opt{display:none;gap:12px}
+.opt.show{display:grid}
+.inline-radios{display:flex;gap:16px;flex-wrap:wrap}
+.inline-radios label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.inline-radios input,.check input{accent-color:var(--accent);margin:0}
+.slider{display:flex;align-items:center;gap:10px}
+.slider input[type=range]{flex:1;accent-color:var(--accent)}
+.slider output{min-width:36px;text-align:right;font-variant-numeric:tabular-nums}
+.check{display:flex;gap:8px;align-items:flex-start;cursor:pointer}
+.check input{margin-top:3px}
+input[type=color]{width:40px;height:28px;border:1px solid var(--border);border-radius:5px;background:var(--input);padding:2px}
+
+.btn{border:1px solid var(--border);background:var(--input);border-radius:5px;padding:6px 12px;cursor:pointer}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-text);font-weight:600}
+.btn.primary:hover{background:var(--accent-hover)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.icon{padding:4px 8px;line-height:1}
+
+.right{display:grid;gap:16px}
+.drop{border:1.5px dashed var(--border);border-radius:8px;padding:22px;text-align:center;cursor:pointer;background:var(--panel)}
+.drop.over{border-color:var(--accent);background:var(--bar)}
+.drop strong{display:block;font-size:15px;margin-bottom:2px}
+
+.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;background:var(--bar);border-bottom:1px solid var(--border)}
+.toolbar h2{margin:0;font-size:14px;font-weight:600;margin-right:auto}
+.summary{color:var(--muted);font-size:13px}
+
+.files{display:grid}
+.empty{color:var(--muted);padding:28px 16px;text-align:center}
+.file{display:grid;grid-template-columns:56px minmax(0,1fr) minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 16px;border-top:1px solid var(--border)}
+.file:first-child{border-top:0}
+.thumb{width:56px;height:56px;border-radius:4px;background:conic-gradient(var(--check-a) 25%,var(--check-b) 0 50%,var(--check-a) 0 75%,var(--check-b) 0) 0 0/12px 12px;display:grid;place-items:center;overflow:hidden}
+.thumb canvas{max-width:100%;max-height:100%}
+.fname{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fmeta{color:var(--muted);font-size:12.5px}
+.result{display:grid;gap:4px;min-width:0}
+.result .out{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.result .out .smaller{color:var(--ok)}
+.result .out .bigger{color:var(--muted)}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;justify-self:start}
+.badge.ok{color:var(--ok);background:var(--ok-bg)}
+.badge.warn{color:var(--warn);background:var(--warn-bg)}
+.badge.err{color:var(--err);background:var(--err-bg)}
+.badge.busy{color:var(--muted);background:var(--bar)}
+.notes{font-size:12px;color:var(--muted)}
+.actions{display:flex;gap:6px}
+@media (max-width:700px){.file{grid-template-columns:44px minmax(0,1fr)}.thumb{width:44px;height:44px}.result,.actions{grid-column:2}}
+
+.guide{padding:4px 16px 16px}
+.guide table{border-collapse:collapse;width:100%;font-size:13px;margin:6px 0 10px}
+.guide th,.guide td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+.guide th{font-weight:600}
+.guide p{color:var(--muted);margin:8px 0;max-width:75ch}
+.guide .scroll{overflow-x:auto}
+details>summary{list-style:none;cursor:pointer}
+details>summary::-webkit-details-marker{display:none}
+details .chev{margin-left:auto;transition:transform .15s}
+details[open] .chev{transform:rotate(180deg)}
+
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 14px;border-radius:6px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<nav class="topnav" aria-label="Tools">
+  <a class="brand" href="index.html"><i aria-hidden="true"><svg viewBox="0 0 32 32" width="100%" height="100%"><path d="M6 6l7 6h6l7-6-1 11-9 9-9-9z" fill="white"/><circle cx="12.5" cy="16" r="1.4" fill="var(--accent)"/><circle cx="19.5" cy="16" r="1.4" fill="var(--accent)"/></svg></i>GrayFox</a>
+  <a class="link" href="convert.html" aria-current="page">Convert images</a>
+  <a class="link" href="ico.html">Make icons</a>
+  <span class="soon" title="Coming next">PDF tools</span>
+  <span class="soon" title="Coming next">Image tools</span>
+</nav>
+
+<header class="page">
+  <h1>Convert images</h1>
+  <p>Change image formats without losing quality. Runs on your PC; nothing is uploaded.</p>
+</header>
+
+<main>
+  <aside class="panel" aria-label="Options">
+    <div class="sec">
+      <div class="sec-head"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 5.5h10.5L10 3M14 10.5H3.5L6 13"/></svg>Convert to</div>
+      <div class="sec-body">
+        <div class="formats" id="formats">
+          <label class="fmt"><input type="radio" name="target" value="png" checked><span><b>PNG</b><small>Lossless</small></span></label>
+          <label class="fmt"><input type="radio" name="target" value="webp"><span><b>WebP</b><small>Lossless or smaller</small></span></label>
+          <label class="fmt"><input type="radio" name="target" value="jpeg"><span><b>JPEG</b><small>Lossy, smallest photos</small></span></label>
+          <label class="fmt"><input type="radio" name="target" value="tiff"><span><b>TIFF</b><small>Lossless</small></span></label>
+          <label class="fmt"><input type="radio" name="target" value="bmp"><span><b>BMP</b><small>Lossless, large files</small></span></label>
+          <label class="fmt"><input type="radio" name="target" value="gif"><span><b>GIF</b><small>Lossless up to 256 colors</small></span></label>
+          <a class="fmt-link" href="ico.html"><b>ICO</b><small>Open the icon maker</small></a>
+        </div>
+
+        <div class="opt" data-for="png">
+          <label class="check"><input type="checkbox" id="pngPalette" checked><span><b>Smaller files for simple images</b><br><span class="hint">Images with 256 colors or fewer are saved with a color palette. Still lossless.</span></span></label>
+        </div>
+
+        <div class="opt" data-for="webp">
+          <div>
+            <div class="label">Quality</div>
+            <div class="inline-radios" id="webpMode">
+              <label><input type="radio" name="webpMode" value="lossless" checked> Lossless</label>
+              <label><input type="radio" name="webpMode" value="lossy"> Smaller file (lossy)</label>
+            </div>
+          </div>
+          <div class="slider" id="webpQWrap" hidden><input type="range" id="webpQ" min="1" max="100" value="85" aria-label="WebP quality"><output id="webpQOut">85</output></div>
+        </div>
+
+        <div class="opt" data-for="jpeg">
+          <div>
+            <div class="label"><label for="jpegQ">Quality</label></div>
+            <div class="slider"><input type="range" id="jpegQ" min="1" max="100" value="90"><output id="jpegQOut">90</output></div>
+            <p class="hint">JPEG always loses some detail, even at 100. Use PNG or WebP lossless to keep every pixel.</p>
+          </div>
+          <div class="row" style="display:flex;align-items:center;gap:10px"><input type="color" id="jpegBg" value="#ffffff"><label for="jpegBg">Background for transparent areas</label></div>
+        </div>
+
+        <div class="opt" data-for="tiff">
+          <div>
+            <div class="label">Compression</div>
+            <div class="inline-radios" id="tiffComp">
+              <label><input type="radio" name="tiffComp" value="lzw" checked> LZW</label>
+              <label><input type="radio" name="tiffComp" value="none"> None</label>
+            </div>
+            <p class="hint">Both are lossless. LZW makes smaller files and opens in all common apps.</p>
+          </div>
+        </div>
+
+        <div class="opt" data-for="bmp"><p class="hint">BMP files are not compressed, so they are large. Transparent images are saved as 32-bit BMP.</p></div>
+        <div class="opt" data-for="gif"><p class="hint">GIF holds at most 256 colors and only fully transparent or fully opaque pixels. Images within those limits convert losslessly; others have their colors reduced and are marked as lossy.</p></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="6.5"/><path d="M8 1.5v13M1.5 8h13" opacity=".5"/></svg>Color and metadata</div>
+      <div class="sec-body">
+        <label class="check"><input type="checkbox" id="keepIcc" checked><span><b>Keep color profile</b><br><span class="hint">Some photos (from iPhones, cameras, design apps) include a color profile. Keeping it makes colors look the same after conversion. BMP and GIF can't store one, so those are converted to standard colors.</span></span></label>
+        <p class="hint">Other metadata, such as camera details and GPS location, is removed.</p>
+      </div>
+    </div>
+  </aside>
+
+  <section class="right">
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Add images">
+      <strong>Drop images here, or click to choose</strong>
+      <span class="hint">PNG, JPEG, WebP, TIFF, BMP, GIF, AVIF, ICO or SVG. Add as many as you like. You can also paste with Ctrl+V.</span>
+      <input type="file" id="fileInput" multiple hidden accept="image/*,.tif,.tiff,.ico,.svg,.avif">
+    </div>
+
+    <div class="panel">
+      <div class="toolbar">
+        <h2 id="filesTitle">Files</h2>
+        <span class="summary" id="summary"></span>
+        <button class="btn" id="clearAll" disabled>Remove all</button>
+        <button class="btn primary" id="downloadAll" disabled>Download all</button>
+      </div>
+      <div class="files" id="files"><div class="empty">Add images to convert them. Each result is checked against the original.</div></div>
+    </div>
+
+    <div class="panel">
+      <details>
+        <summary class="sec-head"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="6.5"/><path d="M6.2 6.2a1.9 1.9 0 1 1 2.6 1.8c-.5.2-.8.6-.8 1.1v.4M8 11.6v.1"/></svg>Which format should I use?<svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg></summary>
+        <div class="guide">
+          <div class="scroll"><table>
+            <thead><tr><th>Format</th><th>Lossless?</th><th>Good for</th></tr></thead>
+            <tbody>
+              <tr><td>PNG</td><td>Always</td><td>Screenshots, logos, graphics, anything you will edit again</td></tr>
+              <tr><td>WebP</td><td>Optional</td><td>Websites. Lossless WebP is often smaller than PNG, especially for graphics</td></tr>
+              <tr><td>JPEG</td><td>Never</td><td>Photos where small size matters more than perfect detail</td></tr>
+              <tr><td>TIFF</td><td>Always</td><td>Printing, scanning and photo editing apps</td></tr>
+              <tr><td>BMP</td><td>Always</td><td>Old programs that need it; files are large</td></tr>
+              <tr><td>GIF</td><td>Up to 256 colors</td><td>Simple graphics for old software</td></tr>
+            </tbody>
+          </table></div>
+          <p><b>Lossless</b> means every pixel in the new file is exactly the same as in the original. After each conversion the tool reopens the new file and compares it with the original, pixel by pixel, and shows “Identical pixels” only when they match.</p>
+          <p><b>Converting from JPEG</b> to PNG, WebP lossless or TIFF keeps the image exactly as it is now. It can't bring back detail that JPEG already removed, and the file usually gets bigger.</p>
+          <p><b>Not supported yet:</b> saving as AVIF, and opening HEIC photos from iPhones. Animated GIFs and WebPs are converted using their first frame only. 16-bit images are reduced to 8-bit color.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ======================================================================
+   Codec library: exact decoding, encoders, color profiles, verification
+   ====================================================================== */
+const Codec = (() => {
+  "use strict";
+
+  /* ---------- shared helpers ---------- */
+  const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  function crc32(b) { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC_T[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+  async function streamBytes(data, ts) { return new Uint8Array(await new Response(new Blob([data]).stream().pipeThrough(ts)).arrayBuffer()); }
+  const deflate = d => streamBytes(d, new CompressionStream("deflate"));
+  const inflate = d => streamBytes(d, new DecompressionStream("deflate"));
+  function concat(parts) { let n = 0; for (const p of parts) n += p.length; const o = new Uint8Array(n); let k = 0; for (const p of parts) { o.set(p, k); k += p.length; } return o; }
+  const ascii = s => Uint8Array.from(s, c => c.charCodeAt(0));
+  function makeCanvas(w, h) { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
+  function isOpaque(px) { for (let i = 3; i < px.length; i += 4) if (px[i] !== 255) return false; return true; }
+
+  /* ---------- format sniffing ---------- */
+  function sniff(u8, name = "") {
+    const s = (a, b) => String.fromCharCode(...u8.subarray(a, b));
+    if (u8[0] === 0x89 && s(1, 4) === "PNG") return "png";
+    if (u8[0] === 0xFF && u8[1] === 0xD8) return "jpeg";
+    if (s(0, 4) === "GIF8") return "gif";
+    if (s(0, 4) === "RIFF" && s(8, 12) === "WEBP") return "webp";
+    if (s(0, 2) === "BM") return "bmp";
+    if (s(0, 4) === "II*\0" || s(0, 4) === "MM\0*") return "tiff";
+    if (u8[0] === 0 && u8[1] === 0 && u8[2] === 1 && u8[3] === 0) return "ico";
+    if (s(4, 8) === "ftyp") {
+      const brands = s(8, 32);
+      if (/avif|avis/.test(brands)) return "avif";
+      if (/heic|heix|heim|heis|hevc|mif1|msf1/.test(brands)) return "heic";
+    }
+    const head = new TextDecoder().decode(u8.subarray(0, 512)).trimStart();
+    if (/^(<\?xml[\s\S]*?)?(<!--[\s\S]*?-->\s*)*(<!DOCTYPE[^>]*>\s*)?<svg/i.test(head) || /\.svg$/i.test(name)) return "svg";
+    return "unknown";
+  }
+
+  /* ---------- exact decoding (no premultiplied-alpha loss) ---------- */
+  let glCtx;
+  function getGL() {
+    if (glCtx !== undefined) return glCtx;
+    try { glCtx = makeCanvas(1, 1).getContext("webgl", { premultipliedAlpha: false, antialias: false }) || null; } catch { glCtx = null; }
+    return glCtx;
+  }
+  function bitmapToRGBA(bmp) {
+    const w = bmp.width, h = bmp.height, g = getGL();
+    if (g && w <= g.getParameter(g.MAX_TEXTURE_SIZE) && h <= g.getParameter(g.MAX_TEXTURE_SIZE)) {
+      const tex = g.createTexture(); g.bindTexture(g.TEXTURE_2D, tex);
+      g.pixelStorei(g.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+      g.pixelStorei(g.UNPACK_COLORSPACE_CONVERSION_WEBGL, g.NONE);
+      g.pixelStorei(g.UNPACK_FLIP_Y_WEBGL, false);
+      g.texImage2D(g.TEXTURE_2D, 0, g.RGBA, g.RGBA, g.UNSIGNED_BYTE, bmp);
+      const fb = g.createFramebuffer(); g.bindFramebuffer(g.FRAMEBUFFER, fb);
+      g.framebufferTexture2D(g.FRAMEBUFFER, g.COLOR_ATTACHMENT0, g.TEXTURE_2D, tex, 0);
+      const out = new Uint8Array(w * h * 4);
+      g.readPixels(0, 0, w, h, g.RGBA, g.UNSIGNED_BYTE, out);
+      g.bindFramebuffer(g.FRAMEBUFFER, null); g.deleteFramebuffer(fb); g.deleteTexture(tex);
+      if (!g.getError()) return { px: out, w, h, exact: true };
+    }
+    const c = makeCanvas(w, h), x = c.getContext("2d");
+    x.drawImage(bmp, 0, 0);
+    return { px: new Uint8Array(x.getImageData(0, 0, w, h).data.buffer), w, h, exact: false };
+  }
+  async function decodeBrowser(blob, convertColor = false) {
+    const bmp = await createImageBitmap(blob, { premultiplyAlpha: "none", colorSpaceConversion: convertColor ? "default" : "none" });
+    try { return bitmapToRGBA(bmp); } finally { bmp.close?.(); }
+  }
+  async function decodeSVG(blob) {
+    const url = URL.createObjectURL(blob);
+    try {
+      const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+      let w = img.naturalWidth || 1024, h = img.naturalHeight || 1024;
+      const s = Math.max(1, 1024 / Math.max(w, h)); w = Math.round(w * s); h = Math.round(h * s);
+      const c = makeCanvas(w, h), x = c.getContext("2d"); x.drawImage(img, 0, 0, w, h);
+      return { px: new Uint8Array(x.getImageData(0, 0, w, h).data.buffer), w, h, exact: false };
+    } finally { URL.revokeObjectURL(url); }
+  }
+
+  /* ---------- TIFF decoder (strips; none, LZW, Deflate, PackBits) ---------- */
+  function lzwDecodeTIFF(src, expected) {
+    const out = new Uint8Array(expected); let op = 0;
+    const prefix = new Int32Array(4096), suffix = new Uint8Array(4096), first = new Uint8Array(4096), len = new Uint16Array(4096);
+    for (let i = 0; i < 256; i++) { prefix[i] = -1; suffix[i] = i; first[i] = i; len[i] = 1; }
+    let width = 9, next = 258, old = -1, bitPos = 0;
+    const total = src.length * 8;
+    const read = () => {
+      if (bitPos + width > total) return 257;
+      let v = 0;
+      for (let k = 0; k < width; k++) { const b = (src[(bitPos + k) >> 3] >> (7 - ((bitPos + k) & 7))) & 1; v = (v << 1) | b; }
+      bitPos += width; return v;
+    };
+    const emit = code => {
+      const l = len[code];
+      if (op + l > out.length) { op = out.length; return; }
+      let p = op + l - 1, c = code;
+      while (c >= 0 && c !== -1) { out[p--] = suffix[c]; c = prefix[c]; }
+      op += l;
+    };
+    for (;;) {
+      const code = read();
+      if (code === 257 || op >= out.length) break;
+      if (code === 256) { width = 9; next = 258; old = -1; continue; }
+      if (old === -1) { emit(code); old = code; continue; }
+      if (code < next) {
+        emit(code);
+        if (next < 4096) { prefix[next] = old; suffix[next] = first[code]; first[next] = first[old]; len[next] = len[old] + 1; next++; }
+      } else {
+        if (next < 4096) { prefix[next] = old; suffix[next] = first[old]; first[next] = first[old]; len[next] = len[old] + 1; next++; }
+        emit(next - 1);
+      }
+      old = code;
+      if (next >= (1 << width) - 1 && width < 12) width++;
+    }
+    return out;
+  }
+  function packBitsDecode(src, expected) {
+    const out = new Uint8Array(expected); let i = 0, o = 0;
+    while (i < src.length && o < expected) {
+      let n = src[i++]; if (n > 127) n -= 256;
+      if (n >= 0) { for (let k = 0; k <= n && o < expected; k++) out[o++] = src[i++]; }
+      else if (n !== -128) { const v = src[i++]; for (let k = 0; k < 1 - n && o < expected; k++) out[o++] = v; }
+    }
+    return out;
+  }
+  async function decodeTIFF(u8) {
+    const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+    const le = u8[0] === 0x49;
+    const g16 = o => dv.getUint16(o, le), g32 = o => dv.getUint32(o, le);
+    if (g16(2) !== 42) throw new Error("This TIFF variant (BigTIFF) isn't supported.");
+    const ifd = g32(4), n = g16(ifd), tags = {};
+    const SZ = { 1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 6: 1, 7: 1, 8: 2, 9: 4, 10: 8, 11: 4, 12: 8 };
+    for (let i = 0; i < n; i++) {
+      const e = ifd + 2 + i * 12, tag = g16(e), type = g16(e + 2), count = g32(e + 4);
+      const size = (SZ[type] || 1) * count, off = size <= 4 ? e + 8 : g32(e + 8);
+      if (type === 7 || type === 1 || type === 2) { tags[tag] = u8.subarray(off, off + count); continue; }
+      const vals = [];
+      for (let k = 0; k < count; k++) {
+        if (type === 3) vals.push(g16(off + k * 2));
+        else if (type === 4) vals.push(g32(off + k * 4));
+        else if (type === 5) vals.push(g32(off + k * 8) / (g32(off + k * 8 + 4) || 1));
+        else vals.push(0);
+      }
+      tags[tag] = vals;
+    }
+    const v = (t, d) => (tags[t] ? tags[t][0] : d);
+    const w = v(256), h = v(257);
+    if (tags[322]) throw new Error("Tiled TIFF files aren't supported yet.");
+    const spp = v(277, 1), bps = tags[258] ? tags[258][0] : 1, comp = v(259, 1), photo = v(262, 2);
+    const planar = v(284, 1), predictor = v(317, 1), rps = v(278, h);
+    const extra = tags[338] ? tags[338][0] : 0;
+    if (bps !== 8) throw new Error(`This TIFF uses ${bps}-bit color, which isn't supported yet. 8-bit TIFFs work.`);
+    if (planar !== 1) throw new Error("This TIFF stores color channels separately, which isn't supported yet.");
+    if (![0, 1, 2, 3].includes(photo)) throw new Error("This TIFF uses a color mode (such as CMYK) that isn't supported yet.");
+    const offs = tags[273], counts = tags[279], rowBytes = w * spp;
+    const raw = new Uint8Array(rowBytes * h);
+    for (let s = 0; s < offs.length; s++) {
+      const rows = Math.min(rps, h - s * rps); if (rows <= 0) break;
+      const exp = rows * rowBytes, chunk = u8.subarray(offs[s], offs[s] + counts[s]);
+      let data;
+      if (comp === 1) data = chunk;
+      else if (comp === 5) data = lzwDecodeTIFF(chunk, exp);
+      else if (comp === 8 || comp === 32946) data = await inflate(chunk);
+      else if (comp === 32773) data = packBitsDecode(chunk, exp);
+      else throw new Error("This TIFF uses a compression type that isn't supported yet (LZW, Deflate, PackBits and uncompressed work).");
+      raw.set(data.subarray(0, exp), s * rps * rowBytes);
+    }
+    if (predictor === 2) for (let y = 0; y < h; y++) { const r = y * rowBytes; for (let i = spp; i < rowBytes; i++) raw[r + i] = (raw[r + i] + raw[r + i - spp]) & 255; }
+    const px = new Uint8Array(w * h * 4);
+    const cmap = tags[320];
+    for (let i = 0, j = 0; i < w * h; i++, j += spp) {
+      const o = i * 4;
+      if (photo === 2) { px[o] = raw[j]; px[o + 1] = raw[j + 1]; px[o + 2] = raw[j + 2]; px[o + 3] = spp >= 4 ? raw[j + 3] : 255; }
+      else if (photo === 3) { const k = raw[j], m = cmap.length / 3; px[o] = cmap[k] >> 8; px[o + 1] = cmap[m + k] >> 8; px[o + 2] = cmap[2 * m + k] >> 8; px[o + 3] = 255; }
+      else { let g = raw[j]; if (photo === 0) g = 255 - g; px[o] = px[o + 1] = px[o + 2] = g; px[o + 3] = spp >= 2 ? raw[j + 1] : 255; }
+      if (extra === 1 && px[o + 3] && px[o + 3] < 255) { const a = px[o + 3]; for (let c = 0; c < 3; c++) px[o + c] = Math.min(255, Math.round(px[o + c] * 255 / a)); }
+    }
+    return { px, w, h, exact: true, icc: tags[34675] ? new Uint8Array(tags[34675]) : null };
+  }
+
+  /* ---------- color profile + bit depth detection ---------- */
+  async function readInfo(u8, fmt) {
+    const info = { icc: null, sixteenBit: false, animated: false };
+    try {
+      if (fmt === "png") {
+        let p = 8; const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+        while (p + 8 <= u8.length) {
+          const len = dv.getUint32(p), type = String.fromCharCode(...u8.subarray(p + 4, p + 8)), d = u8.subarray(p + 8, p + 8 + len);
+          if (type === "IHDR") info.sixteenBit = d[8] === 16;
+          if (type === "acTL") info.animated = true;
+          if (type === "iCCP") { const z = d.indexOf(0); info.icc = await inflate(d.subarray(z + 2)); }
+          if (type === "IDAT" || type === "IEND") break;
+          p += 12 + len;
+        }
+      } else if (fmt === "jpeg") {
+        const parts = []; let p = 2;
+        while (p + 4 <= u8.length && u8[p] === 0xFF) {
+          const m = u8[p + 1];
+          if (m === 0xD8 || (m >= 0xD0 && m <= 0xD7) || m === 0x01) { p += 2; continue; }
+          if (m === 0xDA) break;
+          const len = (u8[p + 2] << 8) | u8[p + 3];
+          if (m === 0xE2 && String.fromCharCode(...u8.subarray(p + 4, p + 16)) === "ICC_PROFILE\0") parts.push([u8[p + 16], u8.subarray(p + 18, p + 2 + len)]);
+          p += 2 + len;
+        }
+        if (parts.length) info.icc = concat(parts.sort((a, b) => a[0] - b[0]).map(x => x[1]));
+      } else if (fmt === "webp") {
+        for (const c of parseRiff(u8)) { if (c.type === "ICCP") info.icc = c.data.slice(); if (c.type === "ANIM") info.animated = true; }
+      } else if (fmt === "gif") {
+        let frames = 0; for (let i = 0; i < u8.length - 2; i++) if (u8[i] === 0x21 && u8[i + 1] === 0xF9 && u8[i + 2] === 4) frames++;
+        info.animated = frames > 1;
+      }
+    } catch { /* metadata is optional */ }
+    return info;
+  }
+
+  /* ---------- decode any supported file ---------- */
+  async function decodeFile(file) {
+    const u8 = new Uint8Array(await file.arrayBuffer());
+    const fmt = sniff(u8, file.name);
+    if (fmt === "heic") throw new Error("HEIC photos from iPhones aren't supported yet. In Windows, open the photo in the Photos app and use Save as JPEG or PNG first.");
+    if (fmt === "unknown") throw new Error("This file isn't an image format the tool can read.");
+    if (fmt === "tiff") { const r = await decodeTIFF(u8); return { ...r, fmt, info: { icc: r.icc, sixteenBit: false, animated: false }, bytes: u8 }; }
+    if (fmt === "svg") { const r = await decodeSVG(new Blob([u8], { type: "image/svg+xml" })); return { ...r, fmt, info: { icc: null }, bytes: u8 }; }
+    const info = await readInfo(u8, fmt);
+    try {
+      const r = await decodeBrowser(new Blob([u8], { type: "image/" + fmt }));
+      return { ...r, fmt, info, bytes: u8 };
+    } catch {
+      throw new Error(fmt === "avif" ? "This browser can't open AVIF files. Use the latest Edge or Chrome." : "The file looks damaged and couldn't be opened.");
+    }
+  }
+
+  /* ---------- PNG encoder ---------- */
+  function pngChunk(type, data) {
+    const out = new Uint8Array(12 + data.length), dv = new DataView(out.buffer);
+    dv.setUint32(0, data.length); out.set(ascii(type), 4); out.set(data, 8);
+    dv.setUint32(8 + data.length, crc32(out.subarray(4, 8 + data.length)));
+    return out;
+  }
+  async function encodePNG(px, w, h, { palette = true, icc = null } = {}) {
+    const n = w * h, u32 = new Uint32Array(px.buffer, px.byteOffset, n);
+    let pal = null, idx = null;
+    if (palette) {
+      let map = new Map(); idx = new Uint8Array(n);
+      for (let i = 0; i < n; i++) {
+        const c = u32[i]; let k = map.get(c);
+        if (k === undefined) { if (map.size >= 256) { map = null; break; } k = map.size; map.set(c, k); }
+        idx[i] = k;
+      }
+      if (map) {
+        // Non-opaque entries first, so the transparency table stays short
+        const keys = [...map.keys()], order = keys.map((c, i) => i).sort((a, b) => ((keys[a] >>> 24) === 255) - ((keys[b] >>> 24) === 255));
+        const remap = new Uint8Array(keys.length); order.forEach((old, i) => remap[old] = i);
+        pal = order.map(i => keys[i]);
+        for (let i = 0; i < n; i++) idx[i] = remap[idx[i]];
+      }
+    }
+    const opaque = !pal && isOpaque(px);
+    const colorType = pal ? 3 : opaque ? 2 : 6, bpp = pal ? 1 : opaque ? 3 : 4, stride = w * bpp;
+    const out = new Uint8Array((stride + 1) * h);
+    let prev = new Uint8Array(stride), cur = new Uint8Array(stride);
+    const cand = [0, 1, 2, 3, 4].map(() => new Uint8Array(stride));
+    for (let y = 0; y < h; y++) {
+      const base = y * w;
+      if (pal) cur.set(idx.subarray(base, base + w));
+      else if (opaque) { for (let x = 0, j = 0, s = base * 4; x < w; x++, s += 4) { cur[j++] = px[s]; cur[j++] = px[s + 1]; cur[j++] = px[s + 2]; } }
+      else cur.set(px.subarray(base * 4, base * 4 + stride));
+      let best = 0, bestRow = cur;
+      if (!pal) {
+        let bestSum = Infinity;
+        for (let f = 0; f < 5; f++) {
+          const r = cand[f]; let sum = 0;
+          for (let i = 0; i < stride; i++) {
+            const a = i >= bpp ? cur[i - bpp] : 0, b = prev[i], c = i >= bpp ? prev[i - bpp] : 0;
+            let p;
+            if (f === 0) p = 0; else if (f === 1) p = a; else if (f === 2) p = b; else if (f === 3) p = (a + b) >> 1;
+            else { const q = a + b - c, pa = Math.abs(q - a), pb = Math.abs(q - b), pc = Math.abs(q - c); p = pa <= pb && pa <= pc ? a : pb <= pc ? b : c; }
+            const v = (cur[i] - p) & 255; r[i] = v; sum += v < 128 ? v : 256 - v;
+          }
+          if (sum < bestSum) { bestSum = sum; best = f; bestRow = r; }
+        }
+      }
+      out[y * (stride + 1)] = best; out.set(bestRow, y * (stride + 1) + 1);
+      const t = prev; prev = cur; cur = t;
+    }
+    const ihdr = new Uint8Array(13), hv = new DataView(ihdr.buffer);
+    hv.setUint32(0, w); hv.setUint32(4, h); ihdr[8] = 8; ihdr[9] = colorType;
+    const chunks = [new Uint8Array([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]), pngChunk("IHDR", ihdr)];
+    if (icc) chunks.push(pngChunk("iCCP", concat([ascii("ICC Profile"), new Uint8Array([0, 0]), await deflate(icc)])));
+    if (pal) {
+      const plte = new Uint8Array(pal.length * 3); let trns = 0;
+      pal.forEach((c, i) => { plte[i * 3] = c & 255; plte[i * 3 + 1] = (c >>> 8) & 255; plte[i * 3 + 2] = (c >>> 16) & 255; if ((c >>> 24) !== 255) trns = i + 1; });
+      chunks.push(pngChunk("PLTE", plte));
+      if (trns) chunks.push(pngChunk("tRNS", Uint8Array.from(pal.slice(0, trns), c => c >>> 24)));
+    }
+    chunks.push(pngChunk("IDAT", await deflate(out)), pngChunk("IEND", new Uint8Array(0)));
+    return concat(chunks);
+  }
+
+  /* ---------- WebP lossless (VP8L) encoder ---------- */
+  class BitWriter {
+    constructor() { this.buf = new Uint8Array(1 << 16); this.pos = 0; this.acc = 0; this.n = 0; }
+    put(v, bits) {
+      this.acc |= v << this.n; this.n += bits;
+      while (this.n >= 8) { this.byte(this.acc & 255); this.acc >>>= 8; this.n -= 8; }
+    }
+    byte(b) { if (this.pos >= this.buf.length) { const nb = new Uint8Array(this.buf.length * 2); nb.set(this.buf); this.buf = nb; } this.buf[this.pos++] = b; }
+    finish() { if (this.n > 0) this.byte(this.acc & 255); this.acc = 0; this.n = 0; return this.buf.slice(0, this.pos); }
+  }
+  function huffLengths(counts, maxLen) {
+    const lens = new Uint8Array(counts.length), syms = [];
+    for (let i = 0; i < counts.length; i++) if (counts[i] > 0) syms.push(i);
+    if (syms.length === 1) { lens[syms[0]] = 1; return lens; }
+    if (!syms.length) return lens;
+    for (let minC = 1; ; minC *= 2) {
+      const leaves = syms.map(s => ({ w: Math.max(counts[s], minC), s })).sort((a, b) => a.w - b.w);
+      const q = []; let i1 = 0, i2 = 0;
+      const pop = () => (i1 < leaves.length && (i2 >= q.length || leaves[i1].w <= q[i2].w)) ? leaves[i1++] : q[i2++];
+      for (let k = 0; k < leaves.length - 1; k++) { const a = pop(), b = pop(); q.push({ w: a.w + b.w, l: a, r: b }); }
+      let maxD = 0; const st = [[q[q.length - 1], 0]];
+      while (st.length) { const [nd, d] = st.pop(); if (nd.l) st.push([nd.l, d + 1], [nd.r, d + 1]); else { lens[nd.s] = d; if (d > maxD) maxD = d; } }
+      if (maxD <= maxLen) return lens;
+      lens.fill(0);
+    }
+  }
+  function canonCodes(lens) {
+    const bl = new Uint32Array(16); for (const l of lens) if (l) bl[l]++;
+    const next = new Uint32Array(16); let code = 0;
+    for (let b = 1; b < 16; b++) { code = (code + bl[b - 1]) << 1; next[b] = code; }
+    const codes = new Uint32Array(lens.length);
+    for (let i = 0; i < lens.length; i++) {
+      const l = lens[i]; if (!l) continue;
+      let c = next[l]++, r = 0; for (let k = 0; k < l; k++) { r = (r << 1) | (c & 1); c >>= 1; }
+      codes[i] = r;
+    }
+    return codes;
+  }
+  const CL_ORDER = [17, 18, 0, 1, 2, 3, 4, 5, 16, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+  function writePrefixCode(bw, counts) {
+    const used = []; for (let i = 0; i < counts.length; i++) if (counts[i]) used.push(i);
+    if (used.length <= 2 && used.every(s => s < 256)) {
+      if (!used.length) used.push(0);
+      bw.put(1, 1); bw.put(used.length - 1, 1);
+      if (used[0] < 2) { bw.put(0, 1); bw.put(used[0], 1); } else { bw.put(1, 1); bw.put(used[0], 8); }
+      if (used.length === 2) bw.put(used[1], 8);
+      const lens = new Uint8Array(counts.length);
+      if (used.length === 2) { lens[used[0]] = 1; lens[used[1]] = 1; }
+      return { lens, codes: canonCodes(lens) };
+    }
+    const lens = huffLengths(counts, 15);
+    if (used.length === 1) lens[used[0] === 0 ? 1 : 0] = 1;
+    // Run-length encode the code lengths
+    const tok = [];
+    for (let i = 0; i < lens.length;) {
+      const v = lens[i]; let run = 1; while (i + run < lens.length && lens[i + run] === v) run++;
+      let r = run;
+      if (v === 0) {
+        while (r > 0) {
+          if (r >= 11) { const k = Math.min(r, 138); tok.push([18, 7, k - 11]); r -= k; }
+          else if (r >= 3) { tok.push([17, 3, r - 3]); r = 0; }
+          else { tok.push([0, 0, 0]); r--; }
+        }
+      } else {
+        tok.push([v, 0, 0]); r--;
+        while (r > 0) { if (r >= 3) { const k = Math.min(r, 6); tok.push([16, 2, k - 3]); r -= k; } else { tok.push([v, 0, 0]); r--; } }
+      }
+      i += run;
+    }
+    const clCounts = new Uint32Array(19); for (const t of tok) clCounts[t[0]]++;
+    const clLens = huffLengths(clCounts, 7);
+    let clUsed = 0; for (const c of clCounts) if (c) clUsed++;
+    if (clUsed === 1) clLens[clCounts[0] ? 1 : 0] = 1;
+    let num = 19; while (num > 4 && clLens[CL_ORDER[num - 1]] === 0) num--;
+    bw.put(0, 1); bw.put(num - 4, 4);
+    for (let k = 0; k < num; k++) bw.put(clLens[CL_ORDER[k]], 3);
+    bw.put(0, 1);
+    const clCodes = canonCodes(clLens);
+    for (const [s, eb, ev] of tok) { bw.put(clCodes[s], clLens[s]); if (eb) bw.put(ev, eb); }
+    return { lens, codes: canonCodes(lens) };
+  }
+  function prefixOf(value) { // value >= 1
+    const d = value - 1;
+    if (d < 4) return [d, 0, 0];
+    const hb = 31 - Math.clz32(d), second = (d >> (hb - 1)) & 1, eb = hb - 1;
+    return [2 * hb + second, eb, d & ((1 << eb) - 1)];
+  }
+  function writeEntropyImage(bw, argb, w, h, isMain) {
+    const n = argb.length, toks = [];
+    for (let i = 0; i < n;) {
+      let best = 0, bestD = 0;
+      if (i > 0) {
+        let k = 0; while (i + k < n && k < 4096 && argb[i + k] === argb[i + k - 1]) k++;
+        if (k > best) { best = k; bestD = 2; }
+      }
+      if (i >= w) {
+        let k = 0; while (i + k < n && k < 4096 && argb[i + k] === argb[i + k - w]) k++;
+        if (k > best) { best = k; bestD = 1; }
+      }
+      if (best >= 3) { toks.push(-best, bestD); i += best; }
+      else { toks.push(argb[i] >>> 0, 0); i++; }
+    }
+    const G = new Uint32Array(280), R = new Uint32Array(256), B = new Uint32Array(256), A = new Uint32Array(256), D = new Uint32Array(40);
+    for (let t = 0; t < toks.length; t += 2) {
+      const v = toks[t];
+      if (v < 0) { G[256 + prefixOf(-v)[0]]++; D[prefixOf(toks[t + 1])[0]]++; }
+      else { G[(v >>> 8) & 255]++; R[(v >>> 16) & 255]++; B[v & 255]++; A[v >>> 24]++; }
+    }
+    bw.put(0, 1); // no color cache
+    if (isMain) bw.put(0, 1); // single prefix code group
+    const cg = writePrefixCode(bw, G), cr = writePrefixCode(bw, R), cb = writePrefixCode(bw, B), ca = writePrefixCode(bw, A), cd = writePrefixCode(bw, D);
+    for (let t = 0; t < toks.length; t += 2) {
+      const v = toks[t];
+      if (v < 0) {
+        const [ls, le, lv] = prefixOf(-v); bw.put(cg.codes[256 + ls], cg.lens[256 + ls]); if (le) bw.put(lv, le);
+        const [ds, de, dvv] = prefixOf(toks[t + 1]); bw.put(cd.codes[ds], cd.lens[ds]); if (de) bw.put(dvv, de);
+      } else {
+        const g = (v >>> 8) & 255, r = (v >>> 16) & 255, b = v & 255, a = v >>> 24;
+        bw.put(cg.codes[g], cg.lens[g]); bw.put(cr.codes[r], cr.lens[r]); bw.put(cb.codes[b], cb.lens[b]); bw.put(ca.codes[a], ca.lens[a]);
+      }
+    }
+  }
+  function encodeVP8L(px, w, h) {
+    if (w > 16384 || h > 16384) throw new Error("WebP images can be at most 16384 pixels wide or tall.");
+    const n = w * h, src = new Uint32Array(n);
+    let alpha = false;
+    for (let i = 0, j = 0; i < n; i++, j += 4) {
+      const r = px[j], g = px[j + 1], b = px[j + 2], a = px[j + 3];
+      if (a !== 255) alpha = true;
+      // subtract-green transform applied here
+      src[i] = ((a << 24) | (((r - g) & 255) << 16) | (g << 8) | ((b - g) & 255)) >>> 0;
+    }
+    const BITS = 4, bw = 1 << BITS, tw = Math.ceil(w / bw), th = Math.ceil(h / bw);
+    const MODES = [1, 2, 7, 12], modes = new Uint8Array(tw * th);
+    const ch = (p, s) => (p >>> s) & 255;
+    const avg = (a, b) => ((((ch(a, 24) + ch(b, 24)) >> 1) << 24) | (((ch(a, 16) + ch(b, 16)) >> 1) << 16) | (((ch(a, 8) + ch(b, 8)) >> 1) << 8) | ((ch(a, 0) + ch(b, 0)) >> 1)) >>> 0;
+    const clampAS = (l, t, tl) => { let o = 0; for (const s of [24, 16, 8, 0]) { let v = ch(l, s) + ch(t, s) - ch(tl, s); v = v < 0 ? 0 : v > 255 ? 255 : v; o |= v << s; } return o >>> 0; };
+    const predict = (m, i) => { const L = src[i - 1], T = src[i - w]; if (m === 1) return L; if (m === 2) return T; if (m === 7) return avg(L, T); return clampAS(L, T, src[i - w - 1]); };
+    const diffCost = (p, q) => { let c = 0; for (const s of [24, 16, 8, 0]) { const d = (ch(p, s) - ch(q, s)) & 255; c += d < 128 ? d : 256 - d; } return c; };
+    for (let by = 0; by < th; by++) for (let bx = 0; bx < tw; bx++) {
+      let bestM = 1, bestC = Infinity;
+      for (const m of MODES) {
+        let c = 0;
+        for (let y = Math.max(1, by * bw); y < Math.min(h, (by + 1) * bw); y++)
+          for (let x = Math.max(1, bx * bw); x < Math.min(w, (bx + 1) * bw); x++) { const i = y * w + x; c += diffCost(src[i], predict(m, i)); }
+        if (c < bestC) { bestC = c; bestM = m; }
+      }
+      modes[by * tw + bx] = bestM;
+    }
+    const res = new Uint32Array(n);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const i = y * w + x;
+      const pred = (x === 0 && y === 0) ? 0xFF000000 : y === 0 ? src[i - 1] : x === 0 ? src[i - w] : predict(modes[(y >> BITS) * tw + (x >> BITS)], i);
+      const p = src[i];
+      res[i] = ((((ch(p, 24) - ch(pred, 24)) & 255) << 24) | (((ch(p, 16) - ch(pred, 16)) & 255) << 16) | (((ch(p, 8) - ch(pred, 8)) & 255) << 8) | ((ch(p, 0) - ch(pred, 0)) & 255)) >>> 0;
+    }
+    const out = new BitWriter();
+    out.put(0x2f, 8); out.put(w - 1, 14); out.put(h - 1, 14); out.put(alpha ? 1 : 0, 1); out.put(0, 3);
+    out.put(1, 1); out.put(2, 2);                       // subtract-green transform
+    out.put(1, 1); out.put(0, 2); out.put(BITS - 2, 3); // predictor transform
+    const sub = new Uint32Array(tw * th); for (let i = 0; i < sub.length; i++) sub[i] = (0xFF000000 | (modes[i] << 8)) >>> 0;
+    writeEntropyImage(out, sub, tw, th, false);
+    out.put(0, 1);                                      // no more transforms
+    writeEntropyImage(out, res, w, h, true);
+    return { data: out.finish(), alpha };
+  }
+  function parseRiff(u8) {
+    const out = []; const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+    for (let p = 12; p + 8 <= u8.length;) { const type = String.fromCharCode(...u8.subarray(p, p + 4)), len = dv.getUint32(p + 4, true); out.push({ type, data: u8.subarray(p + 8, p + 8 + len) }); p += 8 + len + (len & 1); }
+    return out;
+  }
+  function buildRiff(chunks) {
+    let size = 4; for (const c of chunks) size += 8 + c.data.length + (c.data.length & 1);
+    const out = new Uint8Array(8 + size), dv = new DataView(out.buffer);
+    out.set(ascii("RIFF")); dv.setUint32(4, size, true); out.set(ascii("WEBP"), 8);
+    let p = 12;
+    for (const c of chunks) { out.set(ascii(c.type), p); dv.setUint32(p + 4, c.data.length, true); out.set(c.data, p + 8); p += 8 + c.data.length + (c.data.length & 1); }
+    return out;
+  }
+  function webpWithICC(chunks, w, h, alpha, icc) {
+    chunks = chunks.filter(c => c.type !== "VP8X" && c.type !== "ICCP");
+    if (!icc) return buildRiff(chunks);
+    const x = new Uint8Array(10);
+    x[0] = 0x20 | (alpha ? 0x10 : 0);
+    x[4] = (w - 1) & 255; x[5] = ((w - 1) >> 8) & 255; x[6] = ((w - 1) >> 16) & 255;
+    x[7] = (h - 1) & 255; x[8] = ((h - 1) >> 8) & 255; x[9] = ((h - 1) >> 16) & 255;
+    return buildRiff([{ type: "VP8X", data: x }, { type: "ICCP", data: icc }, ...chunks]);
+  }
+  function encodeWebPLossless(px, w, h, icc) {
+    const { data, alpha } = encodeVP8L(px, w, h);
+    return webpWithICC([{ type: "VP8L", data }], w, h, alpha, icc);
+  }
+
+  /* ---------- canvas-based lossy encoders ---------- */
+  async function canvasEncode(px, w, h, type, q, bg) {
+    const a = makeCanvas(w, h);
+    a.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(px.buffer, px.byteOffset, px.length), w, h), 0, 0);
+    let c = a;
+    if (bg) { c = makeCanvas(w, h); const x = c.getContext("2d"); x.fillStyle = bg; x.fillRect(0, 0, w, h); x.drawImage(a, 0, 0); }
+    const blob = await new Promise(r => c.toBlob(r, type, q));
+    if (!blob || blob.type !== type) throw new Error("This browser can't save this format. Use the latest Edge or Chrome.");
+    return new Uint8Array(await blob.arrayBuffer());
+  }
+  async function encodeJPEG(px, w, h, q, bg, icc) {
+    let jpg = await canvasEncode(px, w, h, "image/jpeg", q, bg);
+    if (!icc) return jpg;
+    // Drop any profile the browser added, so the file carries only the original one
+    const keep = [jpg.subarray(0, 2)];
+    let q2 = 2;
+    while (q2 + 4 <= jpg.length && jpg[q2] === 0xFF && jpg[q2 + 1] !== 0xDA) {
+      const len = (jpg[q2 + 2] << 8) | jpg[q2 + 3];
+      const isIcc = jpg[q2 + 1] === 0xE2 && String.fromCharCode(...jpg.subarray(q2 + 4, q2 + 16)) === "ICC_PROFILE\0";
+      if (!isIcc) keep.push(jpg.subarray(q2, q2 + 2 + len));
+      q2 += 2 + len;
+    }
+    keep.push(jpg.subarray(q2));
+    jpg = concat(keep);
+    let p = 2; if (jpg[2] === 0xFF && jpg[3] === 0xE0) p = 4 + ((jpg[4] << 8) | jpg[5]);
+    const segs = [], MAX = 65519, count = Math.ceil(icc.length / MAX);
+    for (let i = 0; i < count; i++) {
+      const part = icc.subarray(i * MAX, (i + 1) * MAX), len = part.length + 16;
+      segs.push(new Uint8Array([0xFF, 0xE2, len >> 8, len & 255]), ascii("ICC_PROFILE\0"), new Uint8Array([i + 1, count]), part);
+    }
+    return concat([jpg.subarray(0, p), ...segs, jpg.subarray(p)]);
+  }
+  async function encodeWebPLossy(px, w, h, q, icc) {
+    const bytes = await canvasEncode(px, w, h, "image/webp", Math.min(q, 0.99));
+    if (!icc) return bytes;
+    const chunks = parseRiff(bytes);
+    return webpWithICC(chunks, w, h, chunks.some(c => c.type === "ALPH"), icc);
+  }
+
+  /* ---------- BMP encoder ---------- */
+  function encodeBMP(px, w, h) {
+    const opaque = isOpaque(px);
+    const hdr = opaque ? 40 : 108, rowSize = opaque ? Math.ceil(w * 3 / 4) * 4 : w * 4;
+    const size = 14 + hdr + rowSize * h, out = new Uint8Array(size), dv = new DataView(out.buffer);
+    out[0] = 0x42; out[1] = 0x4D; dv.setUint32(2, size, true); dv.setUint32(10, 14 + hdr, true);
+    dv.setUint32(14, hdr, true); dv.setInt32(18, w, true); dv.setInt32(22, h, true);
+    dv.setUint16(26, 1, true); dv.setUint16(28, opaque ? 24 : 32, true); dv.setUint32(30, opaque ? 0 : 3, true);
+    dv.setUint32(34, rowSize * h, true); dv.setInt32(38, 2835, true); dv.setInt32(42, 2835, true);
+    if (!opaque) {
+      dv.setUint32(54, 0x00FF0000, true); dv.setUint32(58, 0x0000FF00, true); dv.setUint32(62, 0x000000FF, true); dv.setUint32(66, 0xFF000000, true);
+      dv.setUint32(70, 0x73524742, true); // 'sRGB'
+    }
+    let p = 14 + hdr;
+    for (let y = h - 1; y >= 0; y--) {
+      const rowStart = p;
+      for (let x = 0; x < w; x++) {
+        const s = (y * w + x) * 4;
+        out[p++] = px[s + 2]; out[p++] = px[s + 1]; out[p++] = px[s];
+        if (!opaque) out[p++] = px[s + 3];
+      }
+      p = rowStart + rowSize;
+    }
+    return out;
+  }
+
+  /* ---------- TIFF encoder (LZW + horizontal predictor) ---------- */
+  function lzwEncodeTIFF(data) {
+    const out = []; let acc = 0, nb = 0, width = 9;
+    const put = c => { acc = (acc << width) | c; nb += width; while (nb >= 8) { out.push((acc >>> (nb - 8)) & 255); nb -= 8; } acc &= (1 << nb) - 1; };
+    let dict = new Map(), next = 258;
+    put(256);
+    if (!data.length) { put(257); if (nb) out.push((acc << (8 - nb)) & 255); return Uint8Array.from(out); }
+    let prefix = data[0];
+    for (let i = 1; i < data.length; i++) {
+      const c = data[i], key = prefix * 256 + c, v = dict.get(key);
+      if (v !== undefined) { prefix = v; continue; }
+      put(prefix);
+      dict.set(key, next++);
+      if (next === 4094) { put(256); dict = new Map(); next = 258; width = 9; }
+      else if (next >= (1 << width)) width++;
+      prefix = c;
+    }
+    put(prefix);
+    next++;
+    if (next === 4094) { put(256); width = 9; } else if (next >= (1 << width)) width++;
+    put(257);
+    if (nb) out.push((acc << (8 - nb)) & 255);
+    return Uint8Array.from(out);
+  }
+  function encodeTIFF(px, w, h, { compression = "lzw", icc = null } = {}) {
+    const opaque = isOpaque(px), spp = opaque ? 3 : 4, rowBytes = w * spp;
+    const rps = Math.max(1, Math.floor(65536 / rowBytes)), strips = [];
+    for (let y0 = 0; y0 < h; y0 += rps) {
+      const rows = Math.min(rps, h - y0), raw = new Uint8Array(rows * rowBytes);
+      for (let y = 0; y < rows; y++) for (let x = 0; x < w; x++) {
+        const s = ((y0 + y) * w + x) * 4, d = y * rowBytes + x * spp;
+        raw[d] = px[s]; raw[d + 1] = px[s + 1]; raw[d + 2] = px[s + 2]; if (spp === 4) raw[d + 3] = px[s + 3];
+      }
+      if (compression === "lzw") {
+        for (let y = 0; y < rows; y++) { const r = y * rowBytes; for (let i = rowBytes - 1; i >= spp; i--) raw[r + i] = (raw[r + i] - raw[r + i - spp]) & 255; }
+        strips.push(lzwEncodeTIFF(raw));
+      } else strips.push(raw);
+    }
+    const tags = [];
+    const T = (tag, type, vals) => tags.push({ tag, type, vals });
+    T(256, 4, [w]); T(257, 4, [h]); T(258, 3, Array(spp).fill(8)); T(259, 3, [compression === "lzw" ? 5 : 1]);
+    T(262, 3, [2]); T(273, 4, strips.map(() => 0)); T(277, 3, [spp]); T(278, 4, [rps]);
+    T(279, 4, strips.map(s => s.length)); T(282, 5, [[72, 1]]); T(283, 5, [[72, 1]]); T(284, 3, [1]); T(296, 3, [2]);
+    if (compression === "lzw") T(317, 3, [2]);
+    if (spp === 4) T(338, 3, [2]);
+    if (icc) T(34675, 7, icc);
+    tags.sort((a, b) => a.tag - b.tag);
+    const SZ = { 3: 2, 4: 4, 5: 8, 7: 1 };
+    let dataLen = 0; const stripOffs = [];
+    for (const s of strips) { stripOffs.push(8 + dataLen); dataLen += s.length + (s.length & 1); }
+    const ifdOff = 8 + dataLen, ifdSize = 2 + tags.length * 12 + 4;
+    let extraOff = ifdOff + ifdSize, extraLen = 0;
+    for (const t of tags) { const sz = SZ[t.type] * t.vals.length; if (sz > 4) extraLen += sz + (sz & 1); }
+    const out = new Uint8Array(extraOff + extraLen), dv = new DataView(out.buffer);
+    out.set([0x49, 0x49, 42, 0]); dv.setUint32(4, ifdOff, true);
+    strips.forEach((s, i) => out.set(s, stripOffs[i]));
+    tags.find(t => t.tag === 273).vals = stripOffs;
+    dv.setUint16(ifdOff, tags.length, true);
+    tags.forEach((t, i) => {
+      const e = ifdOff + 2 + i * 12, sz = SZ[t.type] * t.vals.length;
+      dv.setUint16(e, t.tag, true); dv.setUint16(e + 2, t.type, true); dv.setUint32(e + 4, t.vals.length, true);
+      let p = e + 8;
+      if (sz > 4) { dv.setUint32(e + 8, extraOff, true); p = extraOff; extraOff += sz + (sz & 1); }
+      t.vals.forEach((v, k) => {
+        if (t.type === 3) dv.setUint16(p + k * 2, v, true);
+        else if (t.type === 4) dv.setUint32(p + k * 4, v, true);
+        else if (t.type === 5) { dv.setUint32(p + k * 8, v[0], true); dv.setUint32(p + k * 8 + 4, v[1], true); }
+        else out[p + k] = v;
+      });
+    });
+    dv.setUint32(ifdOff + 2 + tags.length * 12, 0, true);
+    return out;
+  }
+
+  /* ---------- GIF encoder ---------- */
+  function medianCut(colors, k) {
+    let boxes = [[...colors].map(([c, n]) => [(c >> 16) & 255, (c >> 8) & 255, c & 255, n])];
+    while (boxes.length < k) {
+      let bi = -1, best = -1, bch = 0;
+      boxes.forEach((b, i) => {
+        if (b.length < 2) return;
+        for (let c = 0; c < 3; c++) { let lo = 255, hi = 0, cnt = 0; for (const e of b) { if (e[c] < lo) lo = e[c]; if (e[c] > hi) hi = e[c]; cnt += e[3]; } const sc = (hi - lo) * Math.sqrt(cnt); if (sc > best) { best = sc; bi = i; bch = c; } }
+      });
+      if (bi < 0 || best <= 0) break;
+      const b = boxes[bi].sort((x, y) => x[bch] - y[bch]); let total = 0; for (const e of b) total += e[3];
+      let acc = 0, m = 1; for (let i = 0; i < b.length; i++) { acc += b[i][3]; if (acc >= total / 2) { m = Math.min(Math.max(i + 1, 1), b.length - 1); break; } }
+      boxes.splice(bi, 1, b.slice(0, m), b.slice(m));
+    }
+    return boxes.map(b => { let r = 0, g = 0, bl = 0, n = 0; for (const e of b) { r += e[0] * e[3]; g += e[1] * e[3]; bl += e[2] * e[3]; n += e[3]; } return [Math.round(r / n), Math.round(g / n), Math.round(bl / n)]; });
+  }
+  function gifLZW(idx, mcs) {
+    const clear = 1 << mcs, eoi = clear + 1, out = []; let next = eoi + 1, width = mcs + 1, acc = 0, nb = 0;
+    const put = c => { acc |= c << nb; nb += width; while (nb >= 8) { out.push(acc & 255); acc >>>= 8; nb -= 8; } };
+    let dict = new Map();
+    put(clear);
+    let prefix = idx[0];
+    for (let i = 1; i < idx.length; i++) {
+      const c = idx[i], key = (prefix << 8) | c, v = dict.get(key);
+      if (v !== undefined) { prefix = v; continue; }
+      put(prefix);
+      dict.set(key, next++);
+      if (next === 4096) { put(clear); dict = new Map(); next = eoi + 1; width = mcs + 1; }
+      else if (next === (1 << width) + 1 && width < 12) width++;
+      prefix = c;
+    }
+    put(prefix);
+    if (next === (1 << width) && width < 12) width++;
+    put(eoi);
+    if (nb) out.push(acc & 255);
+    return out;
+  }
+  function encodeGIF(px, w, h) {
+    const n = w * h, colors = new Map(); let hasT = false, partial = false;
+    for (let i = 0; i < n; i++) {
+      const a = px[i * 4 + 3];
+      if (a !== 0 && a !== 255) partial = true;
+      if (a < 128) { hasT = true; continue; }
+      const key = (px[i * 4] << 16) | (px[i * 4 + 1] << 8) | px[i * 4 + 2];
+      colors.set(key, (colors.get(key) || 0) + 1);
+    }
+    const maxC = hasT ? 255 : 256; let pal, exact = !partial;
+    if (colors.size <= maxC) pal = [...colors.keys()].map(c => [(c >> 16) & 255, (c >> 8) & 255, c & 255]);
+    else { pal = medianCut(colors, maxC); exact = false; }
+    if (!pal.length) pal.push([0, 0, 0]);
+    const lookup = new Map(); pal.forEach((c, i) => lookup.set((c[0] << 16) | (c[1] << 8) | c[2], i));
+    const tIdx = hasT ? pal.length : -1; if (hasT) pal.push([0, 0, 0]);
+    const nearest = key => {
+      let v = lookup.get(key); if (v !== undefined) return v;
+      const r = (key >> 16) & 255, g = (key >> 8) & 255, b = key & 255; let best = 0, bd = Infinity;
+      const lim = hasT ? pal.length - 1 : pal.length;
+      for (let i = 0; i < lim; i++) { const c = pal[i], d = (c[0] - r) ** 2 + (c[1] - g) ** 2 + (c[2] - b) ** 2; if (d < bd) { bd = d; best = i; } }
+      lookup.set(key, best); return best;
+    };
+    const idx = new Uint8Array(n);
+    for (let i = 0; i < n; i++) idx[i] = px[i * 4 + 3] < 128 ? tIdx : nearest((px[i * 4] << 16) | (px[i * 4 + 1] << 8) | px[i * 4 + 2]);
+    let bits = 1; while ((1 << bits) < pal.length) bits++;
+    const size = 1 << bits, out = [...ascii("GIF89a")];
+    const u16 = v => [v & 255, (v >> 8) & 255];
+    out.push(...u16(w), ...u16(h), 0x80 | ((bits - 1) << 4) | (bits - 1), 0, 0);
+    for (let i = 0; i < size; i++) { const c = pal[i] || [0, 0, 0]; out.push(c[0], c[1], c[2]); }
+    if (hasT) out.push(0x21, 0xF9, 4, 1, 0, 0, tIdx, 0);
+    out.push(0x2C, 0, 0, 0, 0, ...u16(w), ...u16(h), 0);
+    const mcs = Math.max(2, bits); out.push(mcs);
+    const data = gifLZW(idx, mcs);
+    for (let i = 0; i < data.length; i += 255) { const blk = data.slice(i, i + 255); out.push(blk.length); for (const b of blk) out.push(b); }
+    out.push(0, 0x3B);
+    return { bytes: Uint8Array.from(out), exact };
+  }
+
+  /* ---------- compare two RGBA buffers ---------- */
+  function compare(a, b) {
+    if (!b || a.length !== b.length) return { identical: false, diffPixels: -1 };
+    let diff = 0;
+    for (let i = 0; i < a.length; i += 4) {
+      if (a[i + 3] === 0 && b[i + 3] === 0) continue; // fully transparent pixels look the same whatever their color
+      if (a[i] !== b[i] || a[i + 1] !== b[i + 1] || a[i + 2] !== b[i + 2] || a[i + 3] !== b[i + 3]) diff++;
+    }
+    return { identical: diff === 0, diffPixels: diff };
+  }
+
+  return { sniff, decodeFile, decodeBrowser, decodeTIFF, encodePNG, encodeWebPLossless, encodeWebPLossy, encodeJPEG, encodeBMP, encodeTIFF, encodeGIF, compare, crc32, makeCanvas, isOpaque };
+})();
+
+/* ======================================================================
+   App
+   ====================================================================== */
+(() => {
+  "use strict";
+  const $ = s => document.querySelector(s);
+  const FORMAT = {
+    png: { ext: "png", mime: "image/png", label: "PNG", canIcc: true },
+    webp: { ext: "webp", mime: "image/webp", label: "WebP", canIcc: true },
+    jpeg: { ext: "jpg", mime: "image/jpeg", label: "JPEG", canIcc: true },
+    tiff: { ext: "tif", mime: "image/tiff", label: "TIFF", canIcc: true },
+    bmp: { ext: "bmp", mime: "image/bmp", label: "BMP", canIcc: false },
+    gif: { ext: "gif", mime: "image/gif", label: "GIF", canIcc: false },
+  };
+  const SRC_LABEL = { png: "PNG", jpeg: "JPEG", webp: "WebP", gif: "GIF", bmp: "BMP", tiff: "TIFF", ico: "ICO", avif: "AVIF", svg: "SVG" };
+  const state = { items: [], target: "png", webpMode: "lossless", webpQ: 85, jpegQ: 90, jpegBg: "#ffffff", pngPalette: true, tiffComp: "lzw", keepIcc: true };
+  let uid = 0, runId = 0;
+
+  const fmtSize = b => b < 1024 ? `${b} B` : b < 1048576 ? `${(b / 1024).toFixed(b < 10240 ? 1 : 0)} KB` : `${(b / 1048576).toFixed(1)} MB`;
+  function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 3000); }
+  function downloadBlob(blob, name) { const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000); }
+  const tick = () => new Promise(r => setTimeout(r, 0));
+
+  /* ---------- options ---------- */
+  function syncOptions() {
+    state.target = document.querySelector("input[name=target]:checked").value;
+    state.webpMode = document.querySelector("input[name=webpMode]:checked").value;
+    state.tiffComp = document.querySelector("input[name=tiffComp]:checked").value;
+    state.webpQ = +$("#webpQ").value; state.jpegQ = +$("#jpegQ").value; state.jpegBg = $("#jpegBg").value;
+    state.pngPalette = $("#pngPalette").checked; state.keepIcc = $("#keepIcc").checked;
+    $("#webpQOut").textContent = state.webpQ; $("#jpegQOut").textContent = state.jpegQ;
+    $("#webpQWrap").hidden = state.webpMode !== "lossy";
+    document.querySelectorAll(".opt").forEach(o => o.classList.toggle("show", o.dataset.for === state.target));
+  }
+  let optTimer;
+  function onOptionChange() { syncOptions(); clearTimeout(optTimer); optTimer = setTimeout(convertAll, 250); }
+  document.querySelectorAll("aside input").forEach(el => el.addEventListener(el.type === "range" ? "input" : "change", onOptionChange));
+
+  /* ---------- files ---------- */
+  async function addFiles(list) {
+    const files = [...list];
+    if (!files.length) return;
+    for (const file of files) {
+      const item = { id: ++uid, file, name: (file.name || "pasted-image").replace(/\.[^.]+$/, ""), size: file.size, els: {}, result: null, error: null };
+      state.items.push(item); buildRow(item); refreshList();
+      try {
+        const d = await Codec.decodeFile(file);
+        Object.assign(item, { px: d.px, w: d.w, h: d.h, exact: d.exact, fmt: d.fmt, info: d.info || {}, bytes: d.bytes });
+        drawThumb(item);
+      } catch (e) { item.error = e.message || String(e); }
+      updateRowMeta(item);
+      await tick();
+    }
+    convertAll();
+  }
+
+  function buildRow(item) {
+    const row = document.createElement("div"); row.className = "file";
+    row.innerHTML = `<div class="thumb"></div>
+      <div style="min-width:0"><div class="fname"></div><div class="fmeta"></div></div>
+      <div class="result"><div class="out"></div><span class="badge busy">Reading…</span><div class="notes"></div></div>
+      <div class="actions"><button class="btn icon rm" aria-label="Remove" title="Remove">✕</button><button class="btn primary dl" disabled>Download</button></div>`;
+    row.querySelector(".fname").textContent = item.file.name || "Pasted image";
+    item.els = { row, thumb: row.querySelector(".thumb"), meta: row.querySelector(".fmeta"), out: row.querySelector(".out"), badge: row.querySelector(".badge"), notes: row.querySelector(".notes"), dl: row.querySelector(".dl") };
+    row.querySelector(".rm").addEventListener("click", () => { state.items = state.items.filter(i => i !== item); row.remove(); refreshList(); });
+    item.els.dl.addEventListener("click", () => { if (item.result) downloadBlob(new Blob([item.result.bytes], { type: FORMAT[item.result.target].mime }), item.result.filename); });
+  }
+  function drawThumb(item) {
+    const s = Math.min(1, 112 / Math.max(item.w, item.h));
+    const tw = Math.max(1, Math.round(item.w * s)), th = Math.max(1, Math.round(item.h * s));
+    const full = Codec.makeCanvas(item.w, item.h);
+    full.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(item.px.buffer, item.px.byteOffset, item.px.length), item.w, item.h), 0, 0);
+    const c = Codec.makeCanvas(tw, th), x = c.getContext("2d"); x.imageSmoothingQuality = "high"; x.drawImage(full, 0, 0, tw, th);
+    item.els.thumb.textContent = ""; item.els.thumb.append(c);
+  }
+  function updateRowMeta(item) {
+    const e = item.els;
+    e.meta.textContent = item.error ? fmtSize(item.size) : `${SRC_LABEL[item.fmt] || item.fmt}, ${item.w} × ${item.h} px, ${fmtSize(item.size)}`;
+    if (item.error) { e.badge.className = "badge err"; e.badge.textContent = "Can't open"; e.notes.textContent = item.error; e.out.textContent = ""; }
+  }
+  function refreshList() {
+    const box = $("#files"); box.textContent = "";
+    if (!state.items.length) box.innerHTML = '<div class="empty">Add images to convert them. Each result is checked against the original.</div>';
+    for (const it of state.items) box.append(it.els.row);
+    $("#filesTitle").textContent = state.items.length ? `Files (${state.items.length})` : "Files";
+    $("#clearAll").disabled = !state.items.length;
+    updateSummary();
+  }
+  function updateSummary() {
+    const done = state.items.filter(i => i.result);
+    $("#downloadAll").disabled = !done.length;
+    if (!done.length) { $("#summary").textContent = ""; return; }
+    const before = done.reduce((a, i) => a + i.size, 0), after = done.reduce((a, i) => a + i.result.bytes.length, 0);
+    const pct = Math.round((after - before) / before * 100);
+    $("#summary").textContent = `${fmtSize(before)} to ${fmtSize(after)} (${pct > 0 ? "+" : ""}${pct}%)`;
+  }
+
+  /* ---------- conversion ---------- */
+  async function convertItem(item) {
+    const t = state.target, F = FORMAT[t], notes = [];
+    let px = item.px;
+    const icc = item.info.icc;
+    let embedIcc = null;
+    if (icc) {
+      if (state.keepIcc && F.canIcc) embedIcc = icc;
+      else {
+        // Convert to standard sRGB colors so they still look right without the profile
+        if (item.fmt !== "tiff" && item.fmt !== "svg") { px = (await Codec.decodeBrowser(new Blob([item.bytes]), true)).px; notes.push("Colors converted to standard sRGB"); }
+      }
+    }
+    if (item.info.sixteenBit) notes.push("16-bit color reduced to 8-bit");
+    if (item.info.animated) notes.push("Animated image: first frame only");
+    if (item.fmt === "svg") notes.push("SVG drawn at " + item.w + " × " + item.h + " px");
+    let bytes, lossless = true, verifyFn = null;
+    const w = item.w, h = item.h;
+    if (t === "png") bytes = await Codec.encodePNG(px, w, h, { palette: state.pngPalette, icc: embedIcc });
+    else if (t === "webp") {
+      if (state.webpMode === "lossless") bytes = Codec.encodeWebPLossless(px, w, h, embedIcc);
+      else { bytes = await Codec.encodeWebPLossy(px, w, h, state.webpQ / 100, embedIcc); lossless = false; }
+    } else if (t === "jpeg") {
+      bytes = await Codec.encodeJPEG(px, w, h, state.jpegQ / 100, state.jpegBg, embedIcc); lossless = false;
+      if (!Codec.isOpaque(px)) notes.push("Transparent areas filled with the background color");
+    } else if (t === "tiff") { bytes = Codec.encodeTIFF(px, w, h, { compression: state.tiffComp, icc: embedIcc }); verifyFn = async b => (await Codec.decodeTIFF(b)).px; }
+    else if (t === "bmp") bytes = Codec.encodeBMP(px, w, h);
+    else if (t === "gif") { const g = Codec.encodeGIF(px, w, h); bytes = g.bytes; if (!g.exact) { lossless = false; notes.push("Colors reduced to fit GIF’s 256-color limit"); } }
+
+    let check = null;
+    if (lossless) {
+      try {
+        const back = verifyFn ? await verifyFn(bytes) : (await Codec.decodeBrowser(new Blob([bytes], { type: F.mime }))).px;
+        check = Codec.compare(px, back);
+      } catch { check = { identical: false, diffPixels: -1 }; }
+    }
+    return { target: t, bytes, lossless, check, notes, filename: `${item.name}.${F.ext}` };
+  }
+
+  async function convertAll() {
+    const my = ++runId;
+    for (const item of state.items) {
+      if (my !== runId) return;
+      if (item.error || !item.px) continue;
+      const e = item.els;
+      e.badge.className = "badge busy"; e.badge.textContent = "Converting…"; e.dl.disabled = true;
+      await tick();
+      try {
+        const r = await convertItem(item);
+        if (my !== runId) return;
+        item.result = r; renderResult(item);
+      } catch (err) {
+        if (my !== runId) return;
+        item.result = null;
+        e.badge.className = "badge err"; e.badge.textContent = "Failed"; e.notes.textContent = err.message || String(err); e.out.textContent = "";
+      }
+      updateSummary();
+      await tick();
+    }
+  }
+
+  function renderResult(item) {
+    const r = item.result, e = item.els, out = r.bytes.length, pct = Math.round((out - item.size) / item.size * 100);
+    e.out.innerHTML = "";
+    const lbl = document.createElement("span"); lbl.textContent = `${FORMAT[r.target].label}, ${fmtSize(out)} `;
+    const ch = document.createElement("span"); ch.className = pct <= 0 ? "smaller" : "bigger"; ch.textContent = `(${pct > 0 ? "+" : ""}${pct}%)`;
+    e.out.append(lbl, ch);
+    if (!r.lossless) { e.badge.className = "badge warn"; e.badge.textContent = "Lossy"; }
+    else if (r.check && r.check.identical) { e.badge.className = "badge ok"; e.badge.textContent = "✓ Identical pixels"; }
+    else { e.badge.className = "badge err"; e.badge.textContent = r.check && r.check.diffPixels > 0 ? `${r.check.diffPixels.toLocaleString()} pixels differ` : "Couldn't verify"; }
+    const notes = [...r.notes];
+    if (r.lossless && item.fmt === "jpeg") notes.push("Kept exactly as the JPEG looked; JPEG’s earlier losses can’t be undone");
+    if (item.info.icc && state.keepIcc && FORMAT[r.target].canIcc) notes.push("Color profile kept");
+    e.notes.textContent = notes.join(". ") + (notes.length ? "." : "");
+    e.dl.disabled = false;
+  }
+
+  /* ---------- wiring ---------- */
+  const drop = $("#drop"), input = $("#fileInput");
+  drop.addEventListener("click", () => input.click());
+  drop.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); input.click(); } });
+  input.addEventListener("change", () => { addFiles(input.files); input.value = ""; });
+  ["dragenter", "dragover"].forEach(t => window.addEventListener(t, ev => { ev.preventDefault(); drop.classList.add("over"); }));
+  window.addEventListener("dragleave", ev => { if (ev.target === drop || !ev.relatedTarget) drop.classList.remove("over"); });
+  window.addEventListener("drop", ev => { ev.preventDefault(); drop.classList.remove("over"); if (ev.dataTransfer?.files?.length) addFiles(ev.dataTransfer.files); });
+  window.addEventListener("paste", ev => { const f = [...(ev.clipboardData?.items || [])].filter(i => i.kind === "file").map(i => i.getAsFile()); if (f.length) addFiles(f); });
+  $("#clearAll").addEventListener("click", () => { runId++; state.items = []; refreshList(); });
+
+  const CRC = Codec.crc32;
+  function buildZip(files) {
+    const enc = new TextEncoder(), parts = [], central = []; let offset = 0;
+    const now = new Date(), dt = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1), dd = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+    for (const f of files) {
+      const nb = enc.encode(f.name), crc = CRC(f.bytes), size = f.bytes.length;
+      const lh = new Uint8Array(30 + nb.length), lv = new DataView(lh.buffer);
+      lv.setUint32(0, 0x04034b50, true); lv.setUint16(4, 20, true); lv.setUint16(6, 0x0800, true); lv.setUint16(10, dt, true); lv.setUint16(12, dd, true);
+      lv.setUint32(14, crc, true); lv.setUint32(18, size, true); lv.setUint32(22, size, true); lv.setUint16(26, nb.length, true); lh.set(nb, 30);
+      const ch = new Uint8Array(46 + nb.length), cv = new DataView(ch.buffer);
+      cv.setUint32(0, 0x02014b50, true); cv.setUint16(4, 20, true); cv.setUint16(6, 20, true); cv.setUint16(8, 0x0800, true); cv.setUint16(12, dt, true); cv.setUint16(14, dd, true);
+      cv.setUint32(16, crc, true); cv.setUint32(20, size, true); cv.setUint32(24, size, true); cv.setUint16(28, nb.length, true); cv.setUint32(42, offset, true); ch.set(nb, 46);
+      parts.push(lh, f.bytes); central.push(ch); offset += lh.length + size;
+    }
+    const cd = central.reduce((a, c) => a + c.length, 0), end = new Uint8Array(22), ev = new DataView(end.buffer);
+    ev.setUint32(0, 0x06054b50, true); ev.setUint16(8, files.length, true); ev.setUint16(10, files.length, true); ev.setUint32(12, cd, true); ev.setUint32(16, offset, true);
+    return new Blob([...parts, ...central, end], { type: "application/zip" });
+  }
+  $("#downloadAll").addEventListener("click", () => {
+    const done = state.items.filter(i => i.result);
+    if (done.length === 1) { const r = done[0].result; downloadBlob(new Blob([r.bytes], { type: FORMAT[r.target].mime }), r.filename); return; }
+    const used = new Map();
+    const files = done.map(i => { let n = i.result.filename; const k = used.get(n) || 0; used.set(n, k + 1); if (k) n = n.replace(/(\.[^.]+)$/, ` (${k + 1})$1`); return { name: n, bytes: i.result.bytes }; });
+    downloadBlob(buildZip(files), "converted-images.zip");
+    toast(`Downloaded ${files.length} images as converted-images.zip`);
+  });
+
+  syncOptions();
+})();
+</script>
+</body>
+</html>

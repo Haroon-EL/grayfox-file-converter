@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Make icons – GrayFox</title>
+<meta name="description" content="Convert PNG images to Windows .ico files offline, with sizes, fit, padding and trim options.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect x=%222%22 y=%222%22 width=%2228%22 height=%2228%22 rx=%226%22 fill=%22%23c9373b%22/%3E%3Cpath d=%22M6 6l7 6h6l7-6-1 11-9 9-9-9z%22 fill=%22white%22/%3E%3Ccircle cx=%2212.5%22 cy=%2216%22 r=%221.4%22 fill=%22%23c9373b%22/%3E%3Ccircle cx=%2219.5%22 cy=%2216%22 r=%221.4%22 fill=%22%23c9373b%22/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#ececee; --panel:#ffffff; --bar:#f3f3f5; --border:#d9d9de; --text:#1b1b1f; --muted:#5f5f68;
+  --accent:#c4363a; --accent-hover:#a92c30; --accent-text:#ffffff; --input:#ffffff;
+  --check-a:#ffffff; --check-b:#e3e3e7;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#121214; --panel:#1b1b1e; --bar:#212125; --border:#303036; --text:#ececef; --muted:#9b9ba4;
+    --accent:#c9373b; --accent-hover:#de4549; --accent-text:#ffffff; --input:#141416;
+    --check-a:#2a2a2e; --check-b:#222225;
+    color-scheme: dark;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:14px/1.45 "Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif;}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;padding:18px 24px 6px}
+header h1{margin:0;font-size:20px;font-weight:650;letter-spacing:-.01em}
+header p{margin:0;color:var(--muted)}
+
+main{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:16px;padding:12px 24px 24px;align-items:start}
+@media (max-width:860px){main{grid-template-columns:1fr;padding:12px}}
+
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+details.sec{border-top:1px solid var(--border)}
+details.sec:first-child{border-top:0}
+details.sec>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bar);font-weight:600}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary svg.ic{width:16px;height:16px;flex:none;opacity:.85}
+details.sec>summary .chev{margin-left:auto;transition:transform .15s}
+details.sec[open]>summary .chev{transform:rotate(180deg)}
+.sec-body{padding:14px 16px 16px;display:grid;gap:14px}
+.label{font-weight:600;margin-bottom:6px}
+.hint{color:var(--muted);font-size:13px}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.chip span{display:inline-block;min-width:44px;text-align:center;padding:4px 8px;border:1px solid var(--border);border-radius:5px;background:var(--input);font-variant-numeric:tabular-nums}
+.chip input:checked+span{background:var(--accent);border-color:var(--accent);color:var(--accent-text)}
+.chip input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.field{display:flex;align-items:center;border:1px solid var(--border);border-radius:5px;background:var(--input);height:32px;padding:0 8px;gap:4px}
+.field input{border:0;background:transparent;width:56px;outline:none}
+.field .unit{color:var(--muted);font-size:12px}
+
+.radios{display:grid;gap:8px}
+.radios label{display:grid;grid-template-columns:20px 1fr;column-gap:6px;cursor:pointer}
+.radios input{margin:2px 0 0;accent-color:var(--accent);width:15px;height:15px}
+.radios b{font-weight:600}
+.radios small{grid-column:2;color:var(--muted);font-size:13px}
+.inline-radios{display:flex;gap:16px}
+.inline-radios label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.inline-radios input{accent-color:var(--accent);margin:0}
+
+.slider{display:flex;align-items:center;gap:10px}
+.slider input[type=range]{flex:1;accent-color:var(--accent)}
+.slider output{min-width:42px;text-align:right;font-variant-numeric:tabular-nums}
+.check{display:flex;gap:8px;align-items:flex-start;cursor:pointer}
+.check input{accent-color:var(--accent);margin:3px 0 0}
+
+.btn{border:1px solid var(--border);background:var(--input);border-radius:5px;padding:6px 12px;cursor:pointer}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-text);font-weight:600}
+.btn.primary:hover{background:var(--accent-hover)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.icon{padding:4px 8px;line-height:1}
+
+.right{display:grid;gap:16px}
+.drop{border:1.5px dashed var(--border);border-radius:8px;padding:22px;text-align:center;cursor:pointer;background:var(--panel)}
+.drop.over{border-color:var(--accent);background:var(--bar)}
+.drop strong{display:block;font-size:15px;margin-bottom:2px}
+
+.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;background:var(--bar);border-bottom:1px solid var(--border)}
+.toolbar h2{margin:0;font-size:14px;font-weight:600;margin-right:auto}
+.toolbar select{background:var(--input);border:1px solid var(--border);border-radius:5px;height:30px;padding:0 6px}
+
+/* Explorer-like preview */
+.explorer{padding:20px 12px;display:grid;gap:18px 8px;justify-items:center;min-height:120px}
+.explorer.dark{background:#191919;color:#f2f2f2}
+.explorer.light{background:#ffffff;color:#1a1a1a}
+.tile{display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px;border-radius:4px;max-width:100%}
+.tile:hover{background:rgba(127,127,127,.18)}
+.tile img{display:block}
+.tile .name{font-size:12px;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:"Segoe UI",system-ui,sans-serif}
+.empty{color:var(--muted);padding:28px 16px;text-align:center}
+
+/* File cards */
+.files{display:grid}
+.file{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:12px 16px;border-top:1px solid var(--border)}
+.file:first-child{border-top:0}
+.thumb{width:56px;height:56px;border-radius:4px;background:conic-gradient(var(--check-a) 25%,var(--check-b) 0 50%,var(--check-a) 0 75%,var(--check-b) 0) 0 0/12px 12px;display:grid;place-items:center;overflow:hidden}
+.thumb img{max-width:100%;max-height:100%}
+.meta{min-width:0;display:grid;gap:6px}
+.meta .fname{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.meta .dims{color:var(--muted);font-size:12px}
+.strip{display:flex;align-items:flex-end;gap:6px;overflow-x:auto;padding-bottom:2px}
+.strip figure{margin:0;display:grid;justify-items:center;gap:2px}
+.strip .px{background:conic-gradient(var(--check-a) 25%,var(--check-b) 0 50%,var(--check-a) 0 75%,var(--check-b) 0) 0 0/8px 8px;display:block}
+.strip figcaption{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
+.actions{display:grid;gap:6px;justify-items:end}
+.pad-override{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.pad-override input{width:52px;height:26px;border:1px solid var(--border);border-radius:4px;background:var(--input);padding:0 6px}
+@media (max-width:600px){.file{grid-template-columns:44px 1fr}.thumb{width:44px;height:44px}.actions{grid-column:1/-1;grid-auto-flow:column;justify-content:start}}
+
+.help{padding:4px 16px 14px}
+.help h3{font-size:14px;margin:14px 0 4px}
+.help p,.help ol{margin:0 0 6px;color:var(--muted);max-width:72ch}
+.help code{background:var(--bar);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:12.5px;color:var(--text);user-select:all}
+
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 14px;border-radius:6px;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.topnav{display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding:10px 24px;border-bottom:1px solid var(--border);background:var(--panel)}
+.topnav .brand{font-weight:700;text-decoration:none;margin-right:14px;display:flex;align-items:center;gap:8px;color:inherit}
+.topnav .brand i{width:20px;height:20px;border-radius:5px;background:var(--accent);display:inline-block}
+.topnav a.link{text-decoration:none;padding:6px 10px;border-radius:5px;color:var(--muted)}
+.topnav a.link:hover{color:var(--text);background:var(--bar)}
+.topnav a.link[aria-current]{color:var(--text);background:var(--bar);font-weight:600}
+.topnav .soon{padding:6px 10px;color:var(--muted);opacity:.55;cursor:default}
+@media (max-width:860px){.topnav{padding-left:12px;padding-right:12px}}
+</style>
+</head>
+<body>
+<nav class="topnav" aria-label="Tools">
+  <a class="brand" href="index.html"><i aria-hidden="true"><svg viewBox="0 0 32 32" width="100%" height="100%"><path d="M6 6l7 6h6l7-6-1 11-9 9-9-9z" fill="white"/><circle cx="12.5" cy="16" r="1.4" fill="var(--accent)"/><circle cx="19.5" cy="16" r="1.4" fill="var(--accent)"/></svg></i>GrayFox</a>
+  <a class="link" href="convert.html">Convert images</a>
+  <a class="link" href="ico.html" aria-current="page">Make icons</a>
+  <span class="soon" title="Coming next">PDF tools</span>
+  <span class="soon" title="Coming next">Image tools</span>
+</nav>
+
+<header>
+  <h1>Make icons</h1>
+  <p>Turn images into Windows .ico files. Runs on your PC; nothing is uploaded.</p>
+</header>
+
+<main>
+  <!-- OPTIONS -->
+  <aside class="panel" aria-label="Options">
+    <details class="sec" open>
+      <summary>
+        <svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1.5 5V1.5H5M11 1.5h3.5V5M14.5 11v3.5H11M5 14.5H1.5V11"/></svg>
+        Resolution
+        <svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg>
+      </summary>
+      <div class="sec-body">
+        <div>
+          <div class="label">Sizes inside the .ico</div>
+          <div class="chips" id="sizeChips"></div>
+          <div class="row" style="margin-top:10px">
+            <button class="linkbtn" data-preset="win">Windows set</button>
+            <button class="linkbtn" data-preset="all">All</button>
+            <button class="linkbtn" data-preset="none">None</button>
+            <span style="margin-left:auto" class="field"><input id="customSize" type="number" min="1" max="256" placeholder="Other"><span class="unit">px</span></span>
+            <button class="btn" id="addSize">Add</button>
+          </div>
+        </div>
+        <p class="hint">Windows picks the size it needs for each view. Include 256 or large icons look blurry; 16, 24, 32 and 48 keep small views sharp.</p>
+
+        <div>
+          <div class="label">Fit</div>
+          <div class="radios" id="fitRadios">
+            <label><input type="radio" name="fit" value="fit" checked><b>fit</b><small>Keeps the whole image and its shape. Non-square images get empty space on two sides. Best choice for most icons.</small></label>
+            <label><input type="radio" name="fit" value="max"><b>max</b><small>Fit within width and height, without enlarging smaller images.</small></label>
+            <label><input type="radio" name="fit" value="crop"><b>crop</b><small>Fills the square and cuts off the parts that do not fit.</small></label>
+            <div id="cropPosWrap" class="row" style="margin-left:26px;display:none"><label class="hint" for="cropPos" style="display:inline">Keep</label><select id="cropPos" style="background:var(--input);border:1px solid var(--border);border-radius:5px;height:28px;padding:0 6px"><option value="center">Center</option><option value="top">Top</option><option value="bottom">Bottom</option><option value="left">Left</option><option value="right">Right</option></select></div>
+            <label><input type="radio" name="fit" value="scale"><b>scale</b><small>Stretches the image into a square, which distorts non-square images.</small></label>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <details class="sec" open>
+      <summary>
+        <svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.5" y="1.5" width="13" height="13" rx="1.5"/><rect x="5" y="5" width="6" height="6"/></svg>
+        Spacing
+        <svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg>
+      </summary>
+      <div class="sec-body">
+        <div>
+          <div class="label"><label for="padding">Padding around the artwork</label></div>
+          <div class="slider"><input type="range" id="padding" min="0" max="40" step="1" value="8"><output id="paddingOut">8%</output></div>
+          <p class="hint">Empty space on every side. More padding makes an icon look smaller in Explorer.</p>
+        </div>
+        <label class="check"><input type="checkbox" id="trim" checked><span><b>Trim transparent edges first</b><br><span class="hint">Removes the empty border each source PNG already has, so every icon starts from the same point. Turn this on with the same padding for all files to make them look equally big.</span></span></label>
+      </div>
+    </details>
+
+    <details class="sec" open>
+      <summary>
+        <svg class="ic" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h12a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1Zm.5 9.8 3.2-3.6 2.2 2.4L10.3 7l3.2 4.8V3.5h-11v8.3Zm9-5.3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/></svg>
+        Image
+        <svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg>
+      </summary>
+      <div class="sec-body">
+        <div>
+          <div class="label">Strip</div>
+          <div class="inline-radios"><label><input type="radio" checked disabled> Yes</label></div>
+          <p class="hint">Metadata such as EXIF is always removed. The image is redrawn for every size, and the ICO format has no place for metadata.</p>
+        </div>
+        <div>
+          <div class="label">Store small sizes as</div>
+          <div class="inline-radios" id="fmtRadios">
+            <label><input type="radio" name="fmt" value="bmp" checked> BMP</label>
+            <label><input type="radio" name="fmt" value="png"> PNG</label>
+          </div>
+          <p class="hint">BMP works in every Windows version and app. PNG makes smaller files. The 256 px size is always stored as PNG.</p>
+        </div>
+      </div>
+    </details>
+  </aside>
+
+  <!-- FILES + PREVIEW -->
+  <section class="right">
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Add images">
+      <strong>Drop images here, or click to choose</strong>
+      <span class="hint">PNG, JPG, WEBP, BMP, GIF or SVG. Add several at once to convert in a batch. You can also paste with Ctrl+V.</span>
+      <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp,image/bmp,image/gif,image/svg+xml,.png,.jpg,.jpeg,.webp,.bmp,.gif,.svg" multiple hidden>
+    </div>
+
+    <div class="panel">
+      <div class="toolbar">
+        <h2>How it looks in Explorer</h2>
+        <label class="hint" for="viewSize">View</label>
+        <select id="viewSize">
+          <option value="16">Small icons</option>
+          <option value="48">Medium icons</option>
+          <option value="96" selected>Large icons</option>
+          <option value="256">Extra large icons</option>
+        </select>
+        <select id="viewBg" aria-label="Background">
+          <option value="dark">Dark mode</option>
+          <option value="light">Light mode</option>
+        </select>
+      </div>
+      <div class="explorer dark" id="explorer"><div class="empty">Add images to see them side by side, at the size Windows will show them.</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="toolbar">
+        <h2 id="filesTitle">Files</h2>
+        <button class="btn" id="clearAll" disabled>Remove all</button>
+        <button class="btn primary" id="downloadAll" disabled>Download all</button>
+      </div>
+      <div class="files" id="files"><div class="empty">No images yet.</div></div>
+    </div>
+
+    <div class="panel">
+      <details class="sec">
+        <summary>
+          <svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="6.5"/><path d="M6.2 6.2a1.9 1.9 0 1 1 2.6 1.8c-.5.2-.8.6-.8 1.1v.4M8 11.6v.1"/></svg>
+          Using the icons in Windows
+          <svg class="chev" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg>
+        </summary>
+        <div class="help">
+          <h3>Why some icons look bigger than others</h3>
+          <p>Windows always draws icons in the same square. An image that fills the square edge to edge looks big; one with a lot of empty space around it looks small. Turn on <b>Trim transparent edges</b> and use the same padding for every file, then check the preview above. If one icon still looks off (a wide shape like a controller looks shorter than a square folder), set a padding override on that file only.</p>
+          <h3>Set a folder icon</h3>
+          <ol>
+            <li>Keep the .ico somewhere permanent first. If you move or delete it later, the folder loses its icon. A good place is inside the folder itself.</li>
+            <li>Right-click the folder, choose Properties, then Customize, then Change Icon, and browse to the .ico.</li>
+          </ol>
+          <h3>Icon not updating?</h3>
+          <p>Windows caches icons. Press Win+R and run <code>ie4uinit.exe -show</code>. If that does not help, restart Windows Explorer from Task Manager.</p>
+          <h3>Gaps between desktop icons</h3>
+          <p>The space between icons is a separate Windows setting and does not change how big an icon looks. Padding here is what controls the visible size.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = s => document.querySelector(s);
+  const WIN_SET = [16, 20, 24, 32, 40, 48, 64, 256];
+  let sizeOptions = [16, 20, 24, 32, 40, 48, 64, 96, 128, 256];
+
+  const state = {
+    files: [],
+    sizes: new Set(WIN_SET),
+    fit: "fit",
+    cropPos: "center",
+    padding: 8,
+    trim: true,
+    fmt: "bmp",
+    view: 96,
+  };
+  let uid = 0;
+
+  /* ---------- helpers ---------- */
+  function makeCanvas(w, h) { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
+  function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2600); }
+  function sortedSizes() { return [...state.sizes].sort((a, b) => a - b); }
+  function downloadBlob(blob, name) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+
+  /* ---------- loading ---------- */
+  function computeBBox(canvas, thr) {
+    const w = canvas.width, h = canvas.height;
+    const d = canvas.getContext("2d").getImageData(0, 0, w, h).data;
+    let minX = w, minY = h, maxX = -1, maxY = -1;
+    for (let y = 0; y < h; y++) {
+      const row = y * w * 4;
+      for (let x = 0; x < w; x++) {
+        if (d[row + x * 4 + 3] > thr) {
+          if (x < minX) minX = x; if (x > maxX) maxX = x;
+          if (y < minY) minY = y; if (y > maxY) maxY = y;
+        }
+      }
+    }
+    if (maxX < 0) return { x: 0, y: 0, w, h };
+    return { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 };
+  }
+
+  function loadItem(file) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        let w = img.naturalWidth || 512, h = img.naturalHeight || 512;
+        const isSvg = /svg/i.test(file.type) || /\.svg$/i.test(file.name);
+        if (isSvg && Math.max(w, h) < 1024) { const s = 1024 / Math.max(w, h); w = Math.round(w * s); h = Math.round(h * s); }
+        const MAX = 4096;
+        if (w > MAX || h > MAX) { const s = MAX / Math.max(w, h); w = Math.round(w * s); h = Math.round(h * s); }
+        const src = makeCanvas(w, h);
+        src.getContext("2d").drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        resolve({
+          id: ++uid,
+          name: (file.name || "pasted-image").replace(/\.[^.]+$/, ""),
+          origW: img.naturalWidth || w, origH: img.naturalHeight || h,
+          src, w, h, bbox: computeBBox(src, 8),
+          maxScale: isSvg ? Infinity : (img.naturalWidth || w) / w,
+          thumb: src.toDataURL("image/png"),
+          padOverride: null, canvases: new Map(), els: {},
+        });
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("decode")); };
+      img.src = url;
+    });
+  }
+
+  async function addFiles(list) {
+    const files = [...list].filter(f => /^image\//.test(f.type) || /\.(png|jpe?g|webp|bmp|gif|svg)$/i.test(f.name));
+    if (!files.length) { toast("Those files are not images. Add PNG, JPG, WEBP, BMP, GIF or SVG."); return; }
+    for (const f of files) {
+      try { const item = await loadItem(f); state.files.push(item); buildCard(item); }
+      catch { toast(`Could not read ${f.name}. The file may be damaged.`); }
+    }
+    refreshList(); scheduleRender();
+  }
+
+  /* ---------- rendering ---------- */
+  function drawHQ(ctx, source, sx, sy, sw, sh, dx, dy, dw, dh) {
+    let cur = source, cx = sx, cy = sy, cw = sw, ch = sh;
+    // Halve repeatedly for smooth downscaling of big sources
+    while (cw / 2 >= dw && ch / 2 >= dh && cw > 2 && ch > 2) {
+      const nw = Math.max(1, Math.round(cw / 2)), nh = Math.max(1, Math.round(ch / 2));
+      const t = makeCanvas(nw, nh), tx = t.getContext("2d");
+      tx.imageSmoothingEnabled = true; tx.imageSmoothingQuality = "high";
+      tx.drawImage(cur, cx, cy, cw, ch, 0, 0, nw, nh);
+      cur = t; cx = 0; cy = 0; cw = nw; ch = nh;
+    }
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(cur, cx, cy, cw, ch, dx, dy, dw, dh);
+  }
+
+  function renderSize(item, size) {
+    const c = makeCanvas(size, size), ctx = c.getContext("2d");
+    const padPct = item.padOverride ?? state.padding;
+    const pad = Math.round(size * padPct / 100);
+    const inner = Math.max(1, size - 2 * pad);
+    const b = state.trim ? item.bbox : { x: 0, y: 0, w: item.w, h: item.h };
+    let sx = b.x, sy = b.y, sw = b.w, sh = b.h, dw, dh;
+    switch (state.fit) {
+      case "max": { const s = Math.min(inner / sw, inner / sh, item.maxScale); dw = sw * s; dh = sh * s; break; }
+      case "crop": { const s = Math.max(inner / sw, inner / sh); const cs = inner / s; const A = { center: [.5, .5], top: [.5, 0], bottom: [.5, 1], left: [0, .5], right: [1, .5] }[state.cropPos]; sx = b.x + (sw - cs) * A[0]; sy = b.y + (sh - cs) * A[1]; sw = cs; sh = cs; dw = inner; dh = inner; break; }
+      case "scale": dw = inner; dh = inner; break;
+      default: { const s = Math.min(inner / sw, inner / sh); dw = sw * s; dh = sh * s; }
+    }
+    const rw = Math.max(1, Math.round(dw)), rh = Math.max(1, Math.round(dh));
+    const dx = Math.floor((size - rw) / 2), dy = Math.floor((size - rh) / 2);
+    drawHQ(ctx, item.src, sx, sy, sw, sh, dx, dy, rw, rh);
+    return c;
+  }
+
+  function pickCanvas(item, view) {
+    const sizes = sortedSizes();
+    if (!sizes.length) return null;
+    const s = sizes.find(v => v >= view) ?? sizes[sizes.length - 1];
+    return item.canvases.get(s);
+  }
+
+  let rafId = 0;
+  function scheduleRender() { cancelAnimationFrame(rafId); rafId = requestAnimationFrame(renderAll); }
+  function renderAll() {
+    const sizes = sortedSizes();
+    for (const item of state.files) renderItem(item, sizes);
+    renderExplorer();
+    $("#downloadAll").disabled = !state.files.length || !sizes.length;
+    document.querySelectorAll(".dl-one").forEach(b => b.disabled = !sizes.length);
+  }
+  function renderItem(item, sizes = sortedSizes()) {
+    item.canvases = new Map(sizes.map(s => [s, renderSize(item, s)]));
+    const strip = item.els.strip; if (!strip) return;
+    strip.textContent = "";
+    if (!sizes.length) { strip.innerHTML = '<span class="hint">Choose at least one size.</span>'; return; }
+    for (const s of sizes) {
+      const fig = document.createElement("figure");
+      const img = document.createElement("img");
+      img.className = "px"; img.width = Math.min(s, 64); img.height = Math.min(s, 64);
+      img.src = item.canvases.get(s).toDataURL("image/png");
+      img.alt = `${s} px`;
+      const cap = document.createElement("figcaption"); cap.textContent = s;
+      fig.append(img, cap); strip.append(fig);
+    }
+  }
+
+  function renderExplorer() {
+    const ex = $("#explorer");
+    ex.textContent = "";
+    if (!state.files.length) { ex.innerHTML = '<div class="empty">Add images to see them side by side, at the size Windows will show them.</div>'; return; }
+    if (!state.sizes.size) { ex.innerHTML = '<div class="empty">Choose at least one size to preview.</div>'; return; }
+    const v = state.view;
+    ex.style.gridTemplateColumns = `repeat(auto-fill, minmax(${Math.max(v + 28, 96)}px, 1fr))`;
+    for (const item of state.files) {
+      const c = pickCanvas(item, v);
+      const tile = document.createElement("div"); tile.className = "tile";
+      const img = document.createElement("img");
+      img.width = v; img.height = v; img.alt = ""; img.src = c.toDataURL("image/png");
+      if (c.width < v) img.style.imageRendering = "auto";
+      const name = document.createElement("div"); name.className = "name"; name.textContent = item.name;
+      name.style.maxWidth = Math.max(v + 20, 90) + "px";
+      tile.append(img, name); ex.append(tile);
+    }
+  }
+
+  /* ---------- file list ---------- */
+  function buildCard(item) {
+    const row = document.createElement("div"); row.className = "file";
+    row.innerHTML = `
+      <div class="thumb"><img alt=""></div>
+      <div class="meta">
+        <div class="fname"></div>
+        <div class="dims"></div>
+        <div class="strip"></div>
+      </div>
+      <div class="actions">
+        <label class="pad-override">Padding <input type="number" min="0" max="40" placeholder="${state.padding}" aria-label="Padding override for this file">%</label>
+        <div class="row">
+          <button class="btn icon rm" title="Remove" aria-label="Remove">✕</button>
+          <button class="btn primary dl-one">Download .ico</button>
+        </div>
+      </div>`;
+    row.querySelector(".thumb img").src = item.thumb;
+    row.querySelector(".fname").textContent = item.name + ".ico";
+    const trimmed = item.bbox.w !== item.w || item.bbox.h !== item.h;
+    row.querySelector(".dims").textContent = `${item.origW} × ${item.origH} px` + (trimmed ? `, artwork ${Math.round(item.bbox.w * item.origW / item.w)} × ${Math.round(item.bbox.h * item.origH / item.h)} px after trim` : "");
+    item.els.row = row;
+    item.els.strip = row.querySelector(".strip");
+    item.els.pad = row.querySelector(".pad-override input");
+    item.els.pad.addEventListener("input", e => {
+      const v = e.target.value.trim();
+      item.padOverride = v === "" ? null : Math.min(40, Math.max(0, Number(v) || 0));
+      renderItem(item); renderExplorer();
+    });
+    row.querySelector(".rm").addEventListener("click", () => {
+      state.files = state.files.filter(f => f !== item); row.remove(); refreshList(); renderExplorer();
+      $("#downloadAll").disabled = !state.files.length || !state.sizes.size;
+    });
+    row.querySelector(".dl-one").addEventListener("click", async () => {
+      downloadBlob(new Blob([await buildIcoFor(item)], { type: "image/x-icon" }), item.name + ".ico");
+      toast(`Downloaded ${item.name}.ico`);
+    });
+  }
+  function refreshList() {
+    const box = $("#files");
+    box.textContent = "";
+    if (!state.files.length) box.innerHTML = '<div class="empty">No images yet.</div>';
+    for (const f of state.files) box.append(f.els.row);
+    $("#filesTitle").textContent = state.files.length ? `Files (${state.files.length})` : "Files";
+    $("#clearAll").disabled = !state.files.length;
+    document.querySelectorAll(".pad-override input").forEach(i => i.placeholder = state.padding);
+  }
+
+  /* ---------- encoders ---------- */
+  async function canvasToPNG(c) {
+    const blob = await new Promise(r => c.toBlob(r, "image/png"));
+    return new Uint8Array(await blob.arrayBuffer());
+  }
+  function canvasToBMP(c) {
+    const w = c.width, h = c.height;
+    const d = c.getContext("2d").getImageData(0, 0, w, h).data;
+    const maskRow = Math.ceil(w / 32) * 4, xorSize = w * h * 4, andSize = maskRow * h;
+    const buf = new Uint8Array(40 + xorSize + andSize), dv = new DataView(buf.buffer);
+    dv.setUint32(0, 40, true); dv.setInt32(4, w, true); dv.setInt32(8, h * 2, true);
+    dv.setUint16(12, 1, true); dv.setUint16(14, 32, true); dv.setUint32(16, 0, true);
+    dv.setUint32(20, xorSize + andSize, true);
+    let p = 40;
+    for (let y = h - 1; y >= 0; y--) for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      buf[p++] = d[i + 2]; buf[p++] = d[i + 1]; buf[p++] = d[i]; buf[p++] = d[i + 3];
+    }
+    for (let y = h - 1; y >= 0; y--) {
+      for (let x = 0; x < w; x++) if (d[(y * w + x) * 4 + 3] === 0) buf[p + (x >> 3)] |= (0x80 >> (x & 7));
+      p += maskRow;
+    }
+    return buf;
+  }
+  function buildICO(entries) {
+    const n = entries.length, head = 6 + 16 * n;
+    const total = head + entries.reduce((a, e) => a + e.bytes.length, 0);
+    const buf = new Uint8Array(total), dv = new DataView(buf.buffer);
+    dv.setUint16(0, 0, true); dv.setUint16(2, 1, true); dv.setUint16(4, n, true);
+    let off = head;
+    entries.forEach((e, i) => {
+      const o = 6 + 16 * i, b = e.size >= 256 ? 0 : e.size;
+      buf[o] = b; buf[o + 1] = b; buf[o + 2] = 0; buf[o + 3] = 0;
+      dv.setUint16(o + 4, 1, true); dv.setUint16(o + 6, 32, true);
+      dv.setUint32(o + 8, e.bytes.length, true); dv.setUint32(o + 12, off, true);
+      buf.set(e.bytes, off); off += e.bytes.length;
+    });
+    return buf;
+  }
+  async function buildIcoFor(item) {
+    const entries = [];
+    for (const s of sortedSizes()) {
+      const c = item.canvases.get(s) || renderSize(item, s);
+      const bytes = (s >= 256 || state.fmt === "png") ? await canvasToPNG(c) : canvasToBMP(c);
+      entries.push({ size: s, bytes });
+    }
+    return buildICO(entries);
+  }
+
+  /* ---------- zip (stored, no compression) ---------- */
+  const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  function crc32(b) { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+  function buildZip(files) {
+    const enc = new TextEncoder(), parts = [], central = [];
+    const now = new Date();
+    const dTime = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+    const dDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+    let offset = 0;
+    for (const f of files) {
+      const nb = enc.encode(f.name), crc = crc32(f.bytes), size = f.bytes.length;
+      const lh = new Uint8Array(30 + nb.length), lv = new DataView(lh.buffer);
+      lv.setUint32(0, 0x04034b50, true); lv.setUint16(4, 20, true); lv.setUint16(6, 0x0800, true);
+      lv.setUint16(8, 0, true); lv.setUint16(10, dTime, true); lv.setUint16(12, dDate, true);
+      lv.setUint32(14, crc, true); lv.setUint32(18, size, true); lv.setUint32(22, size, true);
+      lv.setUint16(26, nb.length, true); lv.setUint16(28, 0, true); lh.set(nb, 30);
+      parts.push(lh, f.bytes);
+      const ch = new Uint8Array(46 + nb.length), cv = new DataView(ch.buffer);
+      cv.setUint32(0, 0x02014b50, true); cv.setUint16(4, 20, true); cv.setUint16(6, 20, true);
+      cv.setUint16(8, 0x0800, true); cv.setUint16(10, 0, true); cv.setUint16(12, dTime, true);
+      cv.setUint16(14, dDate, true); cv.setUint32(16, crc, true); cv.setUint32(20, size, true);
+      cv.setUint32(24, size, true); cv.setUint16(28, nb.length, true); cv.setUint32(42, offset, true);
+      ch.set(nb, 46); central.push(ch);
+      offset += lh.length + size;
+    }
+    const cdSize = central.reduce((a, c) => a + c.length, 0);
+    const end = new Uint8Array(22), ev = new DataView(end.buffer);
+    ev.setUint32(0, 0x06054b50, true); ev.setUint16(8, files.length, true); ev.setUint16(10, files.length, true);
+    ev.setUint32(12, cdSize, true); ev.setUint32(16, offset, true);
+    return new Blob([...parts, ...central, end], { type: "application/zip" });
+  }
+
+  /* ---------- UI wiring ---------- */
+  function buildChips() {
+    const box = $("#sizeChips"); box.textContent = "";
+    for (const s of sizeOptions) {
+      const l = document.createElement("label"); l.className = "chip";
+      l.innerHTML = `<input type="checkbox" value="${s}"><span>${s}</span>`;
+      const cb = l.querySelector("input"); cb.checked = state.sizes.has(s);
+      cb.addEventListener("change", () => { cb.checked ? state.sizes.add(s) : state.sizes.delete(s); scheduleRender(); });
+      box.append(l);
+    }
+  }
+  document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => {
+    const p = b.dataset.preset;
+    state.sizes = new Set(p === "win" ? WIN_SET : p === "all" ? sizeOptions : []);
+    buildChips(); scheduleRender();
+  }));
+  $("#addSize").addEventListener("click", () => {
+    const v = Math.round(Number($("#customSize").value));
+    if (!v || v < 1 || v > 256) { toast("Enter a size from 1 to 256 px. ICO files cannot hold larger images."); return; }
+    if (!sizeOptions.includes(v)) sizeOptions = [...sizeOptions, v].sort((a, b) => a - b);
+    state.sizes.add(v); $("#customSize").value = ""; buildChips(); scheduleRender();
+  });
+  $("#customSize").addEventListener("keydown", e => { if (e.key === "Enter") $("#addSize").click(); });
+
+  function syncFit() { state.fit = document.querySelector('input[name=fit]:checked').value; $("#cropPosWrap").style.display = state.fit === "crop" ? "flex" : "none"; }
+  $("#fitRadios").addEventListener("change", e => { if (e.target.name === "fit") { syncFit(); scheduleRender(); } });
+  $("#cropPos").addEventListener("change", e => { state.cropPos = e.target.value; scheduleRender(); });
+  $("#fmtRadios").addEventListener("change", e => { state.fmt = e.target.value; });
+  $("#padding").addEventListener("input", e => {
+    state.padding = Number(e.target.value); $("#paddingOut").textContent = state.padding + "%";
+    document.querySelectorAll(".pad-override input").forEach(i => i.placeholder = state.padding);
+    scheduleRender();
+  });
+  $("#trim").addEventListener("change", e => { state.trim = e.target.checked; scheduleRender(); });
+  $("#viewSize").addEventListener("change", e => { state.view = Number(e.target.value); renderExplorer(); });
+  $("#viewBg").addEventListener("change", e => { $("#explorer").className = "explorer " + e.target.value; });
+
+  const drop = $("#drop"), input = $("#fileInput");
+  drop.addEventListener("click", () => input.click());
+  drop.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+  input.addEventListener("change", () => { addFiles(input.files); input.value = ""; });
+  ["dragenter", "dragover"].forEach(ev => window.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave", "drop"].forEach(ev => window.addEventListener(ev, e => { e.preventDefault(); if (ev === "drop" || e.target === drop) drop.classList.remove("over"); }));
+  window.addEventListener("drop", e => { if (e.dataTransfer?.files?.length) addFiles(e.dataTransfer.files); });
+  window.addEventListener("paste", e => {
+    const imgs = [...(e.clipboardData?.items || [])].filter(i => i.kind === "file" && i.type.startsWith("image/")).map(i => i.getAsFile());
+    if (imgs.length) addFiles(imgs);
+  });
+
+  $("#clearAll").addEventListener("click", () => { state.files = []; refreshList(); renderAll(); });
+  $("#downloadAll").addEventListener("click", async () => {
+    if (!state.files.length) return;
+    const btn = $("#downloadAll"); btn.disabled = true; btn.textContent = "Building…";
+    try {
+      if (state.files.length === 1) {
+        const it = state.files[0];
+        downloadBlob(new Blob([await buildIcoFor(it)], { type: "image/x-icon" }), it.name + ".ico");
+      } else {
+        const used = new Map(), out = [];
+        for (const it of state.files) {
+          let n = it.name + ".ico", k = used.get(n) || 0;
+          used.set(n, k + 1); if (k) n = `${it.name} (${k + 1}).ico`;
+          out.push({ name: n, bytes: await buildIcoFor(it) });
+        }
+        downloadBlob(buildZip(out), "icons.zip");
+      }
+      toast(state.files.length === 1 ? "Downloaded 1 icon" : `Downloaded ${state.files.length} icons as icons.zip`);
+    } finally { btn.textContent = "Download all"; btn.disabled = false; }
+  });
+
+  // Browsers can restore old selections on refresh; read them so the output matches what is shown
+  syncFit();
+  state.cropPos = $("#cropPos").value;
+  state.fmt = document.querySelector('input[name=fmt]:checked').value;
+  state.padding = Number($("#padding").value); $("#paddingOut").textContent = state.padding + "%";
+  state.trim = $("#trim").checked;
+  state.view = Number($("#viewSize").value);
+  $("#explorer").className = "explorer " + $("#viewBg").value;
+  buildChips();
+})();
+</script>
+</body>
+</html>

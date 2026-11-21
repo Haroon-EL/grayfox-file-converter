@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GrayFox – File Converter</title>
+<meta name="description" content="GrayFox File Converter: free file conversion, image, icon and PDF tools that run entirely on your computer. Nothing is uploaded.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect x=%222%22 y=%222%22 width=%2228%22 height=%2228%22 rx=%226%22 fill=%22%23c9373b%22/%3E%3Cpath d=%22M6 6l7 6h6l7-6-1 11-9 9-9-9z%22 fill=%22white%22/%3E%3Ccircle cx=%2212.5%22 cy=%2216%22 r=%221.4%22 fill=%22%23c9373b%22/%3E%3Ccircle cx=%2219.5%22 cy=%2216%22 r=%221.4%22 fill=%22%23c9373b%22/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#ececee; --panel:#ffffff; --bar:#f3f3f5; --border:#d9d9de; --text:#1b1b1f; --muted:#5f5f68;
+  --accent:#c4363a; --accent-hover:#a92c30; --accent-text:#ffffff;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#121214; --panel:#1b1b1e; --bar:#212125; --border:#303036; --text:#ececef; --muted:#9b9ba4; --accent:#c9373b; --accent-hover:#de4549; color-scheme: dark; }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.5 "Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+
+.top{display:flex;align-items:center;gap:8px;padding:18px 0;font-weight:700}
+.top i{width:22px;height:22px;border-radius:5px;background:var(--accent);display:inline-block}
+
+.hero{padding:48px 0 40px;display:grid;grid-template-columns:1.3fr 1fr;gap:40px;align-items:end}
+.hero h1{margin:0;font-size:clamp(32px,5vw,52px);line-height:1.05;letter-spacing:-.025em;font-weight:700;max-width:14ch}
+.hero p{margin:0;color:var(--muted);font-size:16px;max-width:44ch}
+.hero .facts{display:grid;gap:10px;margin-top:18px}
+.hero .facts div{color:var(--muted)}
+.hero .facts b{color:var(--text);font-weight:600}
+@media (max-width:760px){.hero{grid-template-columns:1fr;gap:20px;padding:28px 0}}
+
+.groups{display:grid;grid-template-columns:repeat(3,1fr);background:var(--panel);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:28px}
+.group{padding:22px 22px 26px;border-left:1px solid var(--border)}
+.group:first-child{border-left:0}
+@media (max-width:760px){.groups{grid-template-columns:1fr}.group{border-left:0;border-top:1px solid var(--border)}.group:first-child{border-top:0}}
+.group h2{margin:0 0 4px;font-size:18px;letter-spacing:-.01em}
+.group .status{font-size:13px;color:var(--muted);margin:0 0 16px}
+.group ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.tool{display:block;padding:10px 12px;margin:0 -12px;border-radius:6px;text-decoration:none;color:inherit}
+a.tool:hover{background:var(--bar)}
+a.tool b{display:block;font-weight:600}
+a.tool b::after{content:"";display:inline-block;width:7px;height:7px;border-top:2px solid var(--accent);border-right:2px solid var(--accent);transform:rotate(45deg);margin-left:8px;vertical-align:2px}
+.tool span{display:block;font-size:13px;color:var(--muted)}
+.tool.later b{font-weight:500;color:var(--muted)}
+
+.how{display:grid;grid-template-columns:repeat(2,1fr);gap:28px;padding:8px 0 40px;color:var(--muted);font-size:14px}
+.how h3{color:var(--text);font-size:15px;margin:0 0 4px}
+.how p{margin:0;max-width:60ch}
+@media (max-width:760px){.how{grid-template-columns:1fr}}
+footer{border-top:1px solid var(--border);padding:16px 0 28px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><i aria-hidden="true"><svg viewBox="0 0 32 32" width="100%" height="100%"><path d="M6 6l7 6h6l7-6-1 11-9 9-9-9z" fill="white"/><circle cx="12.5" cy="16" r="1.4" fill="var(--accent)"/><circle cx="19.5" cy="16" r="1.4" fill="var(--accent)"/></svg></i>GrayFox <span style="font-weight:400;color:var(--muted)">File Converter</span></div>
+
+  <section class="hero">
+    <h1>File tools that never leave your PC.</h1>
+    <div>
+      <p>Convert images, make Windows icons and, soon, work with PDFs. Everything runs inside your browser, even without internet.</p>
+      <div class="facts">
+        <div><b>No uploads.</b> Your files stay on your computer.</div>
+        <div><b>No install.</b> Open the page and start.</div>
+        <div><b>Truly lossless.</b> Every lossless conversion is checked pixel by pixel.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="groups" aria-label="Tools">
+    <div class="group">
+      <h2>Convert</h2>
+      <p class="status">Ready to use</p>
+      <ul>
+        <li><a class="tool" href="convert.html"><b>Convert images</b><span>PNG, WebP, JPEG, TIFF, BMP and GIF, with true lossless conversion</span></a></li>
+        <li><a class="tool" href="ico.html"><b>Make icons</b><span>Windows .ico files with every size, padding and an Explorer preview</span></a></li>
+      </ul>
+    </div>
+    <div class="group">
+      <h2>Image tools</h2>
+      <p class="status">Coming next</p>
+      <ul>
+        <li class="tool later"><b>Resize</b><span>By pixels or percent, one image or many</span></li>
+        <li class="tool later"><b>Crop and rotate</b><span>Free or fixed aspect ratios</span></li>
+        <li class="tool later"><b>Compress</b><span>Smaller files with a quality preview</span></li>
+        <li class="tool later"><b>Watermark and remove metadata</b><span>Add text or a logo; strip GPS and camera data</span></li>
+      </ul>
+    </div>
+    <div class="group">
+      <h2>PDF tools</h2>
+      <p class="status">Coming next</p>
+      <ul>
+        <li class="tool later"><b>Merge and split</b><span>Combine PDFs or pull out pages</span></li>
+        <li class="tool later"><b>Organize pages</b><span>Reorder, rotate and delete</span></li>
+        <li class="tool later"><b>Images to PDF and PDF to images</b><span>Both directions, in one place</span></li>
+        <li class="tool later"><b>Watermark and page numbers</b><span>Stamp text on every page</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="how">
+    <div>
+      <h3>Using it offline</h3>
+      <p>Download the folder and double-click <b>index.html</b>. It opens in Edge or Chrome and works without an internet connection. Keep all the files together in one folder.</p>
+    </div>
+    <div>
+      <h3>Private by design</h3>
+      <p>There is no server. The pages read your files directly in the browser and save the results to your Downloads folder.</p>
+    </div>
+  </section>
+
+  <footer>GrayFox works quietly on your own computer. Open source under the MIT license.</footer>
+</div>
+</body>
+</html>
